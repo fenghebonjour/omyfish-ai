@@ -6,9 +6,9 @@ Standalone AI microservice for the OMyFish platform. Exposes a single HTTP endpo
 
 | Repo | Role |
 |---|---|
-| [omyfish-python](../omyfish-python) | Python origin — Streamlit + FastAPI, deployed on HuggingFace Spaces |
-| [omyfish-dotnet](../omyfish-dotnet) | .NET 10 enterprise rewrite — Clean Architecture + CQRS |
-| [omyfish-java](../omyfish-java) | Java 21 enterprise rewrite — Hexagonal Architecture + Event-Driven |
+| [omyfish-python](https://github.com/fenghebonjour/omyfish-python) | Python origin — Streamlit + FastAPI, deployed on HuggingFace Spaces |
+| [omyfish-dotnet](https://github.com/fenghebonjour/omyfish-dotnet) | .NET 10 enterprise rewrite — Clean Architecture + CQRS |
+| [omyfish-java](https://github.com/fenghebonjour/omyfish-java) | Java 21 enterprise rewrite — Hexagonal Architecture + Event-Driven |
 | **omyfish-ai** (this) | Shared AI microservice — used by all three above |
 
 ## API
