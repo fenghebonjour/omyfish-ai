@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  ai-service:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_PATH: /checkpoints/best.pt
+      CLASSES_PATH: /checkpoints/classes.json
+      METADATA_PATH: /metadata/fish_info.json
+    volumes:
+      - ../omyfish-python/checkpoints:/checkpoints:ro
+      - ../omyfish-python/data/metadata:/metadata:ro
