@@ -50,6 +50,12 @@ class Prediction(BaseModel):
     common_name: str
     confidence: float
     rank: int
+    conservation_status: Optional[str] = None
+    habitat: Optional[str] = None
+    diet: Optional[str] = None
+    max_size_cm: Optional[int] = None
+    description: Optional[str] = None
+    fun_fact: Optional[str] = None
 
 
 class PredictResponse(BaseModel):
@@ -88,6 +94,12 @@ async def predict(request: PredictRequest):
             common_name=common,
             confidence=p["confidence"],
             rank=i,
+            conservation_status=meta.get("conservation_status"),
+            habitat=meta.get("habitat"),
+            diet=meta.get("diet"),
+            max_size_cm=meta.get("max_size_cm"),
+            description=meta.get("description"),
+            fun_fact=meta.get("fun_fact"),
         ))
     return PredictResponse(predictions=predictions, uncertain=result["uncertain"])
 
