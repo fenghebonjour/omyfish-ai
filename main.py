@@ -17,6 +17,7 @@ CLASSES_PATH = os.getenv("CLASSES_PATH", "/checkpoints/classes.json")
 METADATA_PATH = os.getenv("METADATA_PATH", "/metadata/fish_info.json")
 
 _predictor = None
+_gate = None
 _metadata: dict = {}
 
 
@@ -30,7 +31,7 @@ def _load_metadata() -> dict:
 
 @app.on_event("startup")
 async def startup():
-    global _predictor, _metadata
+    global _predictor, _gate, _metadata
     _metadata = _load_metadata()
     try:
         from predictors.efficientnet import FishPredictor
@@ -38,6 +39,12 @@ async def startup():
         print(f"EfficientNet model loaded from {MODEL_PATH}")
     except Exception as e:
         print(f"Model not loaded (stub mode active): {e}")
+    try:
+        from predictors.fish_gate import FishGate
+        _gate = FishGate()
+        print("CLIP fish gate loaded")
+    except Exception as e:
+        print(f"Fish gate not loaded (all images will be classified): {e}")
 
 
 class PredictRequest(BaseModel):
@@ -61,6 +68,7 @@ class Prediction(BaseModel):
 class PredictResponse(BaseModel):
     predictions: List[Prediction]
     uncertain: bool
+    is_fish: bool = True
 
 
 @app.post("/predict", response_model=PredictResponse)
@@ -70,6 +78,12 @@ async def predict(request: PredictRequest):
         image = Image.open(BytesIO(image_bytes)).convert("RGB")
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid image data")
+
+    if _gate is not None:
+        fish, fish_prob = _gate.is_fish(image)
+        if not fish:
+            print(f"Image rejected by fish gate (fish_prob={fish_prob})")
+            return PredictResponse(predictions=[], uncertain=True, is_fish=False)
 
     if _predictor is None:
         return PredictResponse(
