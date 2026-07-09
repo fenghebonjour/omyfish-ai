@@ -1,8 +1,16 @@
 version: "3.9"
 
+# Consumer stacks (omyfish-dotnet, omyfish-java) join this network as
+# `external: true` and reach the service at http://ai-service:8000.
+networks:
+  omyfish-shared:
+    name: omyfish-shared
+    attachable: true
+
 services:
   ai-service:
     build: .
+    networks: [omyfish-shared]
     ports:
       - "8000:8000"
     environment:
@@ -12,3 +20,5 @@ services:
     volumes:
       - ../omyfish-python/checkpoints:/checkpoints:ro
       - ../omyfish-python/data/metadata:/metadata:ro
+      # CLIP weights for the fish gate — avoids a ~600MB download on container start
+      - ~/.cache/huggingface:/root/.cache/huggingface:ro
