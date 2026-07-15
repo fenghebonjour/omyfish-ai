@@ -49,11 +49,13 @@ Content-Type: application/json
     "uncertain": false
   }
 
-GET /health  → { "status": "ok", "model_loaded": true }
+GET /health  → { "status": "ok", "model_loaded": true, "gate_loaded": true }
 GET /species → { "species": ["largemouth_bass", ...] }
 ```
 
 If no trained checkpoint is mounted, the service returns hardcoded stub predictions with `"uncertain": true`.
+
+If the CLIP fish gate fails to load at startup, the service fails loud rather than silently classifying every image as a fish: `/health` returns `503` with `"status": "degraded", "gate_loaded": false`, and `/predict` returns `503` instead of a prediction. See [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ### Bite Score
 
@@ -90,6 +92,9 @@ docker compose up
 
 # Service runs on http://localhost:8000
 ```
+
+Hit an issue getting it running (stale code after edits, `503`s from `/predict`, etc.)? See
+[docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## Used by enterprise projects
 

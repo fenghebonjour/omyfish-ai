@@ -4,7 +4,7 @@ import os
 from io import BytesIO
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from pydantic import BaseModel
@@ -53,7 +53,7 @@ async def startup():
         _gate = FishGate()
         print("CLIP fish gate loaded")
     except Exception as e:
-        print(f"Fish gate not loaded (all images will be classified): {e}")
+        print(f"FISH GATE FAILED TO LOAD — /predict will refuse requests until this is fixed: {e}")
 
 
 class PredictRequest(BaseModel):
@@ -82,17 +82,22 @@ class PredictResponse(BaseModel):
 
 @app.post("/predict", response_model=PredictResponse)
 async def predict(request: PredictRequest):
+    if _gate is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Fish gate unavailable — refusing to classify without non-fish rejection. Check ai-service startup logs.",
+        )
+
     try:
         image_bytes = base64.b64decode(request.image_base64)
         image = Image.open(BytesIO(image_bytes)).convert("RGB")
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid image data")
 
-    if _gate is not None:
-        fish, fish_prob = _gate.is_fish(image)
-        if not fish:
-            print(f"Image rejected by fish gate (fish_prob={fish_prob})")
-            return PredictResponse(predictions=[], uncertain=True, is_fish=False)
+    fish, fish_prob = _gate.is_fish(image)
+    if not fish:
+        print(f"Image rejected by fish gate (fish_prob={fish_prob})")
+        return PredictResponse(predictions=[], uncertain=True, is_fish=False)
 
     if _predictor is None:
         return PredictResponse(
@@ -128,8 +133,15 @@ async def predict(request: PredictRequest):
 
 
 @app.get("/health")
-async def health():
-    return {"status": "ok", "model_loaded": _predictor is not None}
+async def health(response: Response):
+    gate_loaded = _gate is not None
+    if not gate_loaded:
+        response.status_code = 503
+    return {
+        "status": "ok" if gate_loaded else "degraded",
+        "model_loaded": _predictor is not None,
+        "gate_loaded": gate_loaded,
+    }
 
 
 @app.get("/species")
