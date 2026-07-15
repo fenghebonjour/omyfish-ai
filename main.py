@@ -9,8 +9,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from pydantic import BaseModel
 
+from bite_prediction.router import router as bite_prediction_router
+
 app = FastAPI(title="OMyFish AI Service", version="1.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.include_router(bite_prediction_router)
 
 MODEL_PATH = os.getenv("MODEL_PATH", "/checkpoints/best.pt")
 CLASSES_PATH = os.getenv("CLASSES_PATH", "/checkpoints/classes.json")
