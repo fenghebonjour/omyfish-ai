@@ -21,6 +21,7 @@ or router.py needs to know.
 """
 
 import math
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 import ephem
@@ -47,7 +48,14 @@ class WeatherProviderError(RuntimeError):
     """Raised when the weather provider (the one mandatory feed) fails."""
 
 
-async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> list[HourlyConditions]:
+@dataclass
+class ForecastData:
+    conditions: list[HourlyConditions]
+    solunar_majors: list[datetime]  # moon transit/antitransit instants, local naive
+    solunar_minors: list[datetime]  # moonrise/moonset instants, local naive
+
+
+async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> ForecastData:
     async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
         weather = await _fetch_open_meteo(client, lat, lon)
         # Tides are optional enrichment: any failure means None water fields,
@@ -99,7 +107,17 @@ async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> list[Ho
             sunrise=sunrise,
             sunset=sunset,
         ))
-    return conditions
+
+    majors, minors = [], []
+    if conditions:
+        # Pad the horizon so a window centered on an event just outside it
+        # can still overlap the first/last forecast hour.
+        start_utc = conditions[0].timestamp - utc_offset - timedelta(hours=2)
+        end_utc = conditions[-1].timestamp - utc_offset + timedelta(hours=2)
+        majors_utc, minors_utc = _moon_events(lat, lon, start_utc, end_utc)
+        majors = [t + utc_offset for t in majors_utc]
+        minors = [t + utc_offset for t in minors_utc]
+    return ForecastData(conditions=conditions, solunar_majors=majors, solunar_minors=minors)
 
 
 # --------------------------------------------------------------------------- #
@@ -223,3 +241,30 @@ def _moon_metrics(lat: float, lon: float, ts_utc: datetime) -> dict:
     minor = _nearest_minutes([obs.previous_rising, obs.next_rising,
                               obs.previous_setting, obs.next_setting])
     return {"phase": phase, "minutes_from_major": major, "minutes_from_minor": minor}
+
+
+def _moon_events(lat: float, lon: float, start_utc: datetime,
+                 end_utc: datetime) -> tuple[list[datetime], list[datetime]]:
+    """All major (transit/antitransit) and minor (rise/set) moon-event
+    instants within [start_utc, end_utc], UTC naive, each list sorted."""
+    obs = ephem.Observer()
+    obs.lat, obs.lon = str(lat), str(lon)
+    moon = ephem.Moon()
+
+    def _walk(fn) -> list[datetime]:
+        events, cursor = [], ephem.Date(start_utc)
+        while True:
+            try:
+                e = fn(moon, start=cursor)
+            except (ephem.AlwaysUpError, ephem.NeverUpError):
+                break  # circumpolar moon: no rise/set events this period
+            dt = e.datetime()
+            if dt > end_utc:
+                break
+            events.append(dt)
+            cursor = ephem.Date(e + ephem.minute)
+        return events
+
+    majors = sorted(_walk(obs.next_transit) + _walk(obs.next_antitransit))
+    minors = sorted(_walk(obs.next_rising) + _walk(obs.next_setting))
+    return majors, minors

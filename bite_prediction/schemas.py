@@ -21,12 +21,19 @@ class HourlyScoreOut(BaseModel):
     safety_flag: Optional[str] = None
 
 
+class TimeWindowOut(BaseModel):
+    start: datetime
+    end: datetime
+
+
 class ForecastResponse(BaseModel):
     species: str
     lat: float
     lon: float
     hourly: list[HourlyScoreOut]
     best_windows: list[HourlyScoreOut]
+    major_windows: list[TimeWindowOut]  # solunar: moon transit/antitransit ±75 min
+    minor_windows: list[TimeWindowOut]  # solunar: moonrise/moonset ±45 min
 
 
 class SpeciesKeyResponse(BaseModel):

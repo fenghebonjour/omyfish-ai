@@ -7,9 +7,12 @@ lives in providers/. This file just glues HTTP <-> engine <-> provider.
 
 from fastapi import APIRouter, HTTPException, Query
 
-from bite_prediction.engine import PROFILES, compute_bite_score, best_windows, resolve_species_key
+from bite_prediction.engine import (
+    MAJOR_HALF_WIDTH_MIN, MINOR_HALF_WIDTH_MIN, PROFILES,
+    best_windows, build_solunar_windows, compute_bite_score, resolve_species_key,
+)
 from bite_prediction.providers.weather_client import WeatherProviderError, fetch_hourly_conditions
-from bite_prediction.schemas import ForecastResponse, HourlyScoreOut, SpeciesKeyResponse
+from bite_prediction.schemas import ForecastResponse, HourlyScoreOut, SpeciesKeyResponse, TimeWindowOut
 
 router = APIRouter(prefix="/bite-score", tags=["bite-score"])
 
@@ -34,16 +37,20 @@ async def get_forecast(
         raise HTTPException(400, f"Unknown species '{species}'. Valid keys: {list(PROFILES)}")
 
     try:
-        conditions = await fetch_hourly_conditions(lat, lon, hours)
+        data = await fetch_hourly_conditions(lat, lon, hours)
     except WeatherProviderError as e:
         raise HTTPException(503, f"Weather provider unavailable: {e}")
-    results = [compute_bite_score(c, species_key=species_key) for c in conditions]
+    results = [compute_bite_score(c, species_key=species_key) for c in data.conditions]
     top = best_windows(results, top_n=3, min_gap_hours=3)
 
     return ForecastResponse(
         species=species_key, lat=lat, lon=lon,
         hourly=[_to_out(r) for r in results],
         best_windows=[_to_out(r) for r in top],
+        major_windows=[TimeWindowOut(start=w.start, end=w.end)
+                       for w in build_solunar_windows(data.solunar_majors, MAJOR_HALF_WIDTH_MIN)],
+        minor_windows=[TimeWindowOut(start=w.start, end=w.end)
+                       for w in build_solunar_windows(data.solunar_minors, MINOR_HALF_WIDTH_MIN)],
     )
 
 
