@@ -12,7 +12,8 @@ from bite_prediction.engine import (
 )
 from bite_prediction.providers.weather_client import WeatherProviderError, fetch_hourly_conditions
 from bite_prediction.schemas import (
-    ForecastResponse, HourlyScoreOut, SpeciesKeyResponse, SunTimesOut, TimeWindowOut,
+    CurrentConditionsOut, ForecastResponse, HourlyScoreOut, SpeciesKeyResponse,
+    SunTimesOut, TimeWindowOut,
 )
 
 router = APIRouter(prefix="/bite-score", tags=["bite-score"])
@@ -53,6 +54,10 @@ async def get_forecast(
         minor_windows=[TimeWindowOut(start=w.start, end=w.end) for w in minors],
         sun_times=[SunTimesOut(date=s.date, sunrise=s.sunrise, sunset=s.sunset)
                    for s in data.sun_times],
+        current=CurrentConditionsOut(
+            time=data.current.time, precipitation_mm=data.current.precipitation_mm,
+            is_storm=data.current.is_storm, is_heavy_precip=data.current.is_heavy_precip,
+        ) if data.current else None,
     )
 
 

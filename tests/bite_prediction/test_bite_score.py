@@ -57,3 +57,16 @@ def test_breakdown_always_present():
     result = compute_bite_score(cond, species_key="smallmouth_bass")
     d = result.breakdown.as_dict()
     assert set(d.keys()) == {"pressure", "temperature", "wind", "water", "solunar", "sky"}
+
+
+def test_heavy_precip_caps_score_and_sets_safety_message():
+    result = compute_bite_score(_base_conditions(is_heavy_precip=True))
+    assert result.score <= 35.0
+    assert result.safety_flag is not None
+    assert "not recommended" in result.safety_flag
+
+
+def test_storm_outranks_heavy_precip():
+    result = compute_bite_score(_base_conditions(is_storm=True, is_heavy_precip=True))
+    assert result.score <= 15.0
+    assert "lightning" in result.safety_flag

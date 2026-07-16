@@ -32,6 +32,13 @@ class SunTimesOut(BaseModel):
     sunset: datetime
 
 
+class CurrentConditionsOut(BaseModel):
+    time: datetime
+    precipitation_mm: float
+    is_storm: bool
+    is_heavy_precip: bool
+
+
 class ForecastResponse(BaseModel):
     species: str
     lat: float
@@ -41,6 +48,7 @@ class ForecastResponse(BaseModel):
     major_windows: list[TimeWindowOut]  # per day: windows around the top-2 aggregate-score peaks
     minor_windows: list[TimeWindowOut]  # per day: windows around the next-2 peaks
     sun_times: list[SunTimesOut]        # per-day sunrise/sunset (dawn/dusk boost)
+    current: Optional[CurrentConditionsOut] = None  # live nowcast for "right now" alerts
 
 
 class SpeciesKeyResponse(BaseModel):

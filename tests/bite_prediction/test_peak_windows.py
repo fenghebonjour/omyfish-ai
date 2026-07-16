@@ -21,7 +21,7 @@ def _day(scores: list[float], day: datetime = datetime(2026, 7, 16)) -> list[Bit
 def _scores_with_peaks() -> list[float]:
     """24 hourly scores: peaks at 5h (83), 15h (74), 20h (60), 10h (55)."""
     scores = [30.0] * 24
-    scores[3], scores[4], scores[5], scores[6], scores[7] = 60, 76, 83, 75, 50
+    scores[3], scores[4], scores[5], scores[6], scores[7] = 60, 80, 83, 75, 50
     scores[14], scores[15], scores[16] = 70, 74, 66
     scores[20] = 60
     scores[10] = 55
@@ -39,16 +39,19 @@ def test_top_two_peaks_become_majors_next_two_minors():
 def test_window_expands_only_within_tolerance_of_peak():
     majors, _ = peak_windows(_day(_scores_with_peaks()))
     best = next(w for w in majors if w.peak_score == 83.0)
-    # neighbors 76 and 75 are within 10 pts of 83; 60 (3h) and 50 (7h) are not
+    # 80 at 4h is within 5 pts of 83 and joins; 75 at 6h does not
     assert best.start == datetime(2026, 7, 16, 4, 0)
-    assert best.end == datetime(2026, 7, 16, 7, 0)  # last hour block [6h, 7h)
+    assert best.end == datetime(2026, 7, 16, 6, 0)  # last hour block [5h, 6h)
 
 
-def test_windows_do_not_overlap():
+def test_windows_are_short_and_never_adjacent():
     majors, minors = peak_windows(_day(_scores_with_peaks()))
     windows = sorted(majors + minors, key=lambda w: w.start)
+    for w in windows:
+        assert timedelta(hours=1) <= w.end - w.start <= timedelta(hours=3)
+    # a gap must remain between windows so they never read as one block
     for earlier, later in zip(windows, windows[1:]):
-        assert earlier.end <= later.start
+        assert earlier.end < later.start
 
 
 def test_each_day_gets_its_own_windows():

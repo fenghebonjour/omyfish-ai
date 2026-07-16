@@ -49,6 +49,7 @@ class HourlyConditions:
     moon_phase: float            # 0.0 = new, 0.5 = full, 1.0 = new (cycle fraction)
     minutes_from_moon_major: float   # minutes to nearest moon-overhead/underfoot event
     minutes_from_moon_minor: float   # minutes to nearest moonrise/moonset event
+    is_heavy_precip: bool = False    # heavy rain/snow codes without a storm flag
     # Exactly one of the two water blocks should be populated by the caller
     tide_rate_m_per_hr: Optional[float] = None   # signed; None if non-tidal water
     tide_pct_to_extreme: Optional[float] = None  # 0=at high/low, 1=at slack midpoint
@@ -276,6 +277,12 @@ def compute_bite_score(cond: HourlyConditions, species_key: str = "general") -> 
         # blend decide.
         final_score = min(final_score, 15.0)
         safety_flag = "Storm conditions reported — score suppressed; do not fish through lightning."
+    elif cond.is_heavy_precip:
+        # Heavy rain/snow without lightning: visibility, comfort, and
+        # runoff make fishing inadvisable, but it is not the lightning-
+        # lethal case — cap above the storm cap so the two stay distinct.
+        final_score = min(final_score, 35.0)
+        safety_flag = "Heavy precipitation — fishing not recommended this hour."
 
     return BiteScoreResult(
         timestamp=cond.timestamp,
@@ -312,9 +319,9 @@ class PeakWindow:
 def peak_windows(results: list[BiteScoreResult],
                  majors_per_day: int = 2,
                  minors_per_day: int = 2,
-                 min_gap_hours: int = 3,
-                 tolerance: float = 10.0,
-                 max_half_width_hours: int = 2) -> tuple[list[PeakWindow], list[PeakWindow]]:
+                 min_gap_hours: int = 4,
+                 tolerance: float = 5.0,
+                 max_half_width_hours: int = 1) -> tuple[list[PeakWindow], list[PeakWindow]]:
     """Per-day major/minor time windows derived from the aggregate score
     (not from moon events): clients display these as "Major/Minor times",
     so they always agree with the activity curve.
@@ -327,6 +334,11 @@ def peak_windows(results: list[BiteScoreResult],
     end is exclusive of the last hour block (an hour point covers
     [t, t+1h)). Windows are relative to each day — a poor day still gets
     its "least bad" windows; the headline score conveys how good they are.
+
+    Defaults are calibrated against how anglers read competitor apps
+    (2026-07-16): windows run 1-3 h, and `min_gap_hours` must exceed
+    2*max_half_width_hours + 1 so two windows can never touch and merge
+    into one half-day block.
     """
     by_day: dict = {}
     for r in results:

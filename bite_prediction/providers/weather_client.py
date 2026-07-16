@@ -39,6 +39,9 @@ NOAA_PREDICTIONS_URL = "https://api.tidesandcurrents.noaa.gov/api/prod/datagette
 MAX_TIDE_STATION_KM = 50.0
 _HTTP_TIMEOUT = 10.0
 _STORM_WEATHER_CODES = {95, 96, 99}  # WMO thunderstorm codes
+# WMO heavy-precipitation codes: heavy rain (65), heavy freezing rain (67),
+# heavy snow (75), violent rain showers (82), heavy snow showers (86)
+_HEAVY_PRECIP_CODES = {65, 67, 75, 82, 86}
 
 # NOAA tide-prediction station list (~3k stations); fetched once per process.
 _stations_cache: list[dict] | None = None
@@ -56,9 +59,20 @@ class SunTimes:
 
 
 @dataclass
+class CurrentConditions:
+    """Open-Meteo current conditions — a nowcast, so a shower happening
+    right now is caught even when the hourly forecast missed it."""
+    time: datetime      # local naive
+    precipitation_mm: float
+    is_storm: bool
+    is_heavy_precip: bool
+
+
+@dataclass
 class ForecastData:
     conditions: list[HourlyConditions]
     sun_times: list[SunTimes]  # per-day sunrise/sunset (drives the dawn/dusk boost)
+    current: CurrentConditions | None
 
 
 async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> ForecastData:
@@ -111,6 +125,7 @@ async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> Forecas
             cloud_cover_pct=hourly["cloud_cover"][i],
             precip_mm=hourly["precipitation"][i],
             is_storm=hourly["weather_code"][i] in _STORM_WEATHER_CODES,
+            is_heavy_precip=hourly["weather_code"][i] in _HEAVY_PRECIP_CODES,
             moon_phase=moon["phase"],
             minutes_from_moon_major=moon["minutes_from_major"],
             minutes_from_moon_minor=moon["minutes_from_minor"],
@@ -120,7 +135,18 @@ async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> Forecas
             sunset=sunset,
         ))
 
-    return ForecastData(conditions=conditions, sun_times=sun_times)
+    current = None
+    cur = weather.get("current")
+    if cur and cur.get("weather_code") is not None:
+        code = cur["weather_code"]
+        current = CurrentConditions(
+            time=datetime.fromisoformat(cur["time"]),
+            precipitation_mm=cur.get("precipitation") or 0.0,
+            is_storm=code in _STORM_WEATHER_CODES,
+            is_heavy_precip=code in _HEAVY_PRECIP_CODES,
+        )
+
+    return ForecastData(conditions=conditions, sun_times=sun_times, current=current)
 
 
 # --------------------------------------------------------------------------- #
@@ -136,6 +162,7 @@ async def _fetch_open_meteo(client: httpx.AsyncClient, lat: float, lon: float) -
             "wind_speed_10m", "cloud_cover", "precipitation", "weather_code",
         ]),
         "daily": "sunrise,sunset",
+        "current": "weather_code,precipitation",
         "timezone": "auto",
         "past_days": 1,       # history for the 3h/24h pressure deltas
         "forecast_days": 16,  # 14-day horizon regardless of time of day (16 = Open-Meteo max)
