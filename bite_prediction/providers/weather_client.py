@@ -49,10 +49,16 @@ class WeatherProviderError(RuntimeError):
 
 
 @dataclass
+class SunTimes:
+    date: str           # ISO date
+    sunrise: datetime   # local naive
+    sunset: datetime
+
+
+@dataclass
 class ForecastData:
     conditions: list[HourlyConditions]
-    solunar_majors: list[datetime]  # moon transit/antitransit instants, local naive
-    solunar_minors: list[datetime]  # moonrise/moonset instants, local naive
+    sun_times: list[SunTimes]  # per-day sunrise/sunset (drives the dawn/dusk boost)
 
 
 async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> ForecastData:
@@ -67,20 +73,26 @@ async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> Forecas
 
     utc_offset = timedelta(seconds=weather["utc_offset_seconds"])
     hourly = weather["hourly"]
-    sun_by_date = {
-        d: (datetime.fromisoformat(rise).time(), datetime.fromisoformat(set_).time())
+    sun_times = [
+        SunTimes(date=d, sunrise=datetime.fromisoformat(rise), sunset=datetime.fromisoformat(set_))
         for d, rise, set_ in zip(weather["daily"]["time"],
                                  weather["daily"]["sunrise"], weather["daily"]["sunset"])
-    }
+    ]
+    sun_by_date = {s.date: (s.sunrise.time(), s.sunset.time()) for s in sun_times}
 
     timestamps = [datetime.fromisoformat(t) for t in hourly["time"]]  # local naive
     pressures = hourly["pressure_msl"]
     now_local = datetime.utcnow() + utc_offset
 
+    # Anchor at local midnight, not "now": clients chart the whole current
+    # day, so today's already-elapsed hours are included. Earlier hours
+    # (yesterday) were only fetched to compute pressure deltas.
+    day_start_local = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
+
     conditions: list[HourlyConditions] = []
     for i, ts in enumerate(timestamps):
-        if ts < now_local.replace(minute=0, second=0, microsecond=0):
-            continue  # past hours were only fetched to compute pressure deltas
+        if ts < day_start_local:
+            continue
         if len(conditions) >= hours:
             break
 
@@ -108,16 +120,7 @@ async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> Forecas
             sunset=sunset,
         ))
 
-    majors, minors = [], []
-    if conditions:
-        # Pad the horizon so a window centered on an event just outside it
-        # can still overlap the first/last forecast hour.
-        start_utc = conditions[0].timestamp - utc_offset - timedelta(hours=2)
-        end_utc = conditions[-1].timestamp - utc_offset + timedelta(hours=2)
-        majors_utc, minors_utc = _moon_events(lat, lon, start_utc, end_utc)
-        majors = [t + utc_offset for t in majors_utc]
-        minors = [t + utc_offset for t in minors_utc]
-    return ForecastData(conditions=conditions, solunar_majors=majors, solunar_minors=minors)
+    return ForecastData(conditions=conditions, sun_times=sun_times)
 
 
 # --------------------------------------------------------------------------- #
@@ -134,8 +137,8 @@ async def _fetch_open_meteo(client: httpx.AsyncClient, lat: float, lon: float) -
         ]),
         "daily": "sunrise,sunset",
         "timezone": "auto",
-        "past_days": 1,      # history for the 3h/24h pressure deltas
-        "forecast_days": 8,  # 7-day horizon regardless of time of day
+        "past_days": 1,       # history for the 3h/24h pressure deltas
+        "forecast_days": 16,  # 14-day horizon regardless of time of day (16 = Open-Meteo max)
     }
     try:
         resp = await client.get(OPEN_METEO_URL, params=params)
@@ -192,7 +195,7 @@ async def _fetch_tide_rates(client: httpx.AsyncClient, lat: float, lon: float) -
         "station": station, "datum": "MLLW", "units": "metric",
         "time_zone": "gmt", "interval": "h",
         "begin_date": today.strftime("%Y%m%d"),
-        "end_date": (today + timedelta(days=8)).strftime("%Y%m%d"),
+        "end_date": (today + timedelta(days=15)).strftime("%Y%m%d"),
     }
     resp = await client.get(NOAA_PREDICTIONS_URL, params=params)
     resp.raise_for_status()
@@ -241,30 +244,3 @@ def _moon_metrics(lat: float, lon: float, ts_utc: datetime) -> dict:
     minor = _nearest_minutes([obs.previous_rising, obs.next_rising,
                               obs.previous_setting, obs.next_setting])
     return {"phase": phase, "minutes_from_major": major, "minutes_from_minor": minor}
-
-
-def _moon_events(lat: float, lon: float, start_utc: datetime,
-                 end_utc: datetime) -> tuple[list[datetime], list[datetime]]:
-    """All major (transit/antitransit) and minor (rise/set) moon-event
-    instants within [start_utc, end_utc], UTC naive, each list sorted."""
-    obs = ephem.Observer()
-    obs.lat, obs.lon = str(lat), str(lon)
-    moon = ephem.Moon()
-
-    def _walk(fn) -> list[datetime]:
-        events, cursor = [], ephem.Date(start_utc)
-        while True:
-            try:
-                e = fn(moon, start=cursor)
-            except (ephem.AlwaysUpError, ephem.NeverUpError):
-                break  # circumpolar moon: no rise/set events this period
-            dt = e.datetime()
-            if dt > end_utc:
-                break
-            events.append(dt)
-            cursor = ephem.Date(e + ephem.minute)
-        return events
-
-    majors = sorted(_walk(obs.next_transit) + _walk(obs.next_antitransit))
-    minors = sorted(_walk(obs.next_rising) + _walk(obs.next_setting))
-    return majors, minors

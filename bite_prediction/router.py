@@ -8,11 +8,12 @@ lives in providers/. This file just glues HTTP <-> engine <-> provider.
 from fastapi import APIRouter, HTTPException, Query
 
 from bite_prediction.engine import (
-    MAJOR_HALF_WIDTH_MIN, MINOR_HALF_WIDTH_MIN, PROFILES,
-    best_windows, build_solunar_windows, compute_bite_score, resolve_species_key,
+    PROFILES, best_windows, compute_bite_score, peak_windows, resolve_species_key,
 )
 from bite_prediction.providers.weather_client import WeatherProviderError, fetch_hourly_conditions
-from bite_prediction.schemas import ForecastResponse, HourlyScoreOut, SpeciesKeyResponse, TimeWindowOut
+from bite_prediction.schemas import (
+    ForecastResponse, HourlyScoreOut, SpeciesKeyResponse, SunTimesOut, TimeWindowOut,
+)
 
 router = APIRouter(prefix="/bite-score", tags=["bite-score"])
 
@@ -30,7 +31,7 @@ async def get_forecast(
     lat: float,
     lon: float,
     species: str = Query("general", description="Key from bite_prediction.engine.PROFILES, or a resolvable species name"),
-    hours: int = Query(168, le=168, description="Forecast horizon, max 7 days"),
+    hours: int = Query(168, le=336, description="Forecast horizon from start of today (local), max 14 days"),
 ):
     species_key = resolve_species_key(species)
     if species_key is None:
@@ -42,15 +43,16 @@ async def get_forecast(
         raise HTTPException(503, f"Weather provider unavailable: {e}")
     results = [compute_bite_score(c, species_key=species_key) for c in data.conditions]
     top = best_windows(results, top_n=3, min_gap_hours=3)
+    majors, minors = peak_windows(results)
 
     return ForecastResponse(
         species=species_key, lat=lat, lon=lon,
         hourly=[_to_out(r) for r in results],
         best_windows=[_to_out(r) for r in top],
-        major_windows=[TimeWindowOut(start=w.start, end=w.end)
-                       for w in build_solunar_windows(data.solunar_majors, MAJOR_HALF_WIDTH_MIN)],
-        minor_windows=[TimeWindowOut(start=w.start, end=w.end)
-                       for w in build_solunar_windows(data.solunar_minors, MINOR_HALF_WIDTH_MIN)],
+        major_windows=[TimeWindowOut(start=w.start, end=w.end) for w in majors],
+        minor_windows=[TimeWindowOut(start=w.start, end=w.end) for w in minors],
+        sun_times=[SunTimesOut(date=s.date, sunrise=s.sunrise, sunset=s.sunset)
+                   for s in data.sun_times],
     )
 
 

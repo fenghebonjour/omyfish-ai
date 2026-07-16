@@ -26,14 +26,21 @@ class TimeWindowOut(BaseModel):
     end: datetime
 
 
+class SunTimesOut(BaseModel):
+    date: str
+    sunrise: datetime
+    sunset: datetime
+
+
 class ForecastResponse(BaseModel):
     species: str
     lat: float
     lon: float
     hourly: list[HourlyScoreOut]
     best_windows: list[HourlyScoreOut]
-    major_windows: list[TimeWindowOut]  # solunar: moon transit/antitransit ±75 min
-    minor_windows: list[TimeWindowOut]  # solunar: moonrise/moonset ±45 min
+    major_windows: list[TimeWindowOut]  # per day: windows around the top-2 aggregate-score peaks
+    minor_windows: list[TimeWindowOut]  # per day: windows around the next-2 peaks
+    sun_times: list[SunTimesOut]        # per-day sunrise/sunset (dawn/dusk boost)
 
 
 class SpeciesKeyResponse(BaseModel):

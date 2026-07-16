@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from typing import Optional
 
 from .species_profiles import SpeciesProfile, get_profile
@@ -300,3 +300,65 @@ def best_windows(results: list[BiteScoreResult], top_n: int = 3,
         if len(chosen) == top_n:
             break
     return sorted(chosen, key=lambda r: r.timestamp)
+
+
+@dataclass
+class PeakWindow:
+    start: datetime
+    end: datetime
+    peak_score: float
+
+
+def peak_windows(results: list[BiteScoreResult],
+                 majors_per_day: int = 2,
+                 minors_per_day: int = 2,
+                 min_gap_hours: int = 3,
+                 tolerance: float = 10.0,
+                 max_half_width_hours: int = 2) -> tuple[list[PeakWindow], list[PeakWindow]]:
+    """Per-day major/minor time windows derived from the aggregate score
+    (not from moon events): clients display these as "Major/Minor times",
+    so they always agree with the activity curve.
+
+    Per calendar day, the `majors_per_day` highest hourly peaks (kept
+    `min_gap_hours` apart) anchor major windows, the next `minors_per_day`
+    anchor minors. Each window expands around its peak hour while
+    neighboring hours stay within `tolerance` points of the peak, up to
+    `max_half_width_hours` each side, never claiming an hour twice. The
+    end is exclusive of the last hour block (an hour point covers
+    [t, t+1h)). Windows are relative to each day — a poor day still gets
+    its "least bad" windows; the headline score conveys how good they are.
+    """
+    by_day: dict = {}
+    for r in results:
+        by_day.setdefault(r.timestamp.date(), []).append(r)
+
+    majors: list[PeakWindow] = []
+    minors: list[PeakWindow] = []
+    for day in sorted(by_day):
+        hours = sorted(by_day[day], key=lambda r: r.timestamp)
+        ranked = sorted(range(len(hours)), key=lambda i: hours[i].score, reverse=True)
+        chosen: list[int] = []
+        for i in ranked:
+            if all(abs(i - j) >= min_gap_hours for j in chosen):
+                chosen.append(i)
+            if len(chosen) == majors_per_day + minors_per_day:
+                break
+
+        claimed: set[int] = set()
+        for rank, i in enumerate(chosen):  # highest peaks claim their hours first
+            peak = hours[i].score
+            lo = hi = i
+            while (lo - 1 >= 0 and i - (lo - 1) <= max_half_width_hours
+                   and (lo - 1) not in claimed and hours[lo - 1].score >= peak - tolerance):
+                lo -= 1
+            while (hi + 1 < len(hours) and (hi + 1) - i <= max_half_width_hours
+                   and (hi + 1) not in claimed and hours[hi + 1].score >= peak - tolerance):
+                hi += 1
+            claimed.update(range(lo, hi + 1))
+            window = PeakWindow(start=hours[lo].timestamp,
+                                end=hours[hi].timestamp + timedelta(hours=1),
+                                peak_score=peak)
+            (majors if rank < majors_per_day else minors).append(window)
+
+    return (sorted(majors, key=lambda w: w.start),
+            sorted(minors, key=lambda w: w.start))
