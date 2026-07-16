@@ -36,6 +36,12 @@ def _load_metadata() -> dict:
 async def startup():
     global _predictor, _gate, _metadata
     _metadata = _load_metadata()
+    if os.getenv("DISABLE_FISH_ID"):
+        # Bite-score-only deployments (e.g. bundled inside the Streamlit
+        # HF Space) skip the model + CLIP gate loads entirely: /predict
+        # stays in stub mode and startup is instant.
+        print("DISABLE_FISH_ID set — skipping model and fish-gate loading")
+        return
     try:
         from predictors.efficientnet import FishPredictor
         _predictor = FishPredictor(MODEL_PATH, CLASSES_PATH)
