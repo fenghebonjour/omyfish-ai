@@ -1,9 +1,25 @@
+---
+title: OMyFish AI Service
+emoji: 🎣
+colorFrom: blue
+colorTo: cyan
+sdk: docker
+app_port: 8000
+pinned: false
+license: mit
+---
+
 # omyfish-ai
 
 Standalone AI microservice for the OMyFish platform, shared by all three OMyFish projects. Two domains:
 
 - **Fish identification** (`/predict`) — species ID from a photo (CLIP gate + EfficientNet-B3).
-- **Bite Score** (`/bite-score/*`) — an explainable 0–100 fishing-timing forecast, hourly up to 7 days, tuned per species.
+- **Bite Score** (`/bite-score/*`) — an explainable 0–100 fishing-timing forecast, hourly up to 14 days, tuned per species.
+
+> **HuggingFace Space note:** the YAML header above makes this repo deployable as-is as a Docker
+> Space. The Space has no model volumes mounted, so `/predict` runs in stub mode and the CLIP
+> gate is skipped — the Bite Score endpoints (what the deployed Streamlit app's Timing tab uses)
+> are fully functional without them.
 
 ## Project Family
 
