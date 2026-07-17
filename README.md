@@ -11,7 +11,7 @@ license: mit
 
 # omyfish-ai
 
-Standalone AI microservice for the OMyFish platform, shared by all three OMyFish projects. Two domains:
+Standalone AI microservice powering **OMyFish — Your AI Fishing Companion** (*When, Where, What you catch.*), shared by all three OMyFish projects. Two domains:
 
 - **Fish identification** (`/predict`) — species ID from a photo (CLIP gate + EfficientNet-B3).
 - **Bite Score** (`/bite-score/*`) — an explainable 0–100 fishing-timing forecast, hourly up to 14 days, tuned per species.
