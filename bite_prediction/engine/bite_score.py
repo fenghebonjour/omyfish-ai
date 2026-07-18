@@ -297,8 +297,11 @@ def compute_bite_score(cond: HourlyConditions, species_key: str = "general") -> 
 def best_windows(results: list[BiteScoreResult], top_n: int = 3,
                   min_gap_hours: int = 3) -> list[BiteScoreResult]:
     """Pick the top N non-overlapping hourly peaks (so a 7-day forecast
-    doesn't just return six consecutive hours of one good afternoon)."""
-    ranked = sorted(results, key=lambda r: r.score, reverse=True)
+    doesn't just return six consecutive hours of one good afternoon).
+    Safety-flagged hours (storm, heavy precip) are never recommended,
+    even when every unflagged hour scores lower."""
+    ranked = sorted((r for r in results if r.safety_flag is None),
+                    key=lambda r: r.score, reverse=True)
     chosen: list[BiteScoreResult] = []
     for r in ranked:
         if all(abs((r.timestamp - c.timestamp).total_seconds()) >= min_gap_hours * 3600
