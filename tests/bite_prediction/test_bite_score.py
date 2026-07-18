@@ -111,6 +111,14 @@ def test_calm_weather_has_no_safety_flag():
     assert compute_bite_score(_base_conditions()).safety_flag is None
 
 
+def test_precip_probability_rides_through_without_affecting_score():
+    dry = compute_bite_score(_base_conditions())
+    wet_chance = compute_bite_score(_base_conditions(precip_probability_pct=85.0))
+    assert wet_chance.precip_probability_pct == 85.0
+    assert dry.precip_probability_pct is None
+    assert wet_chance.score == dry.score  # display-only: chance of rain is not scored
+
+
 def test_light_rain_boosts_sky_but_heavy_rain_penalizes():
     from bite_prediction.engine.bite_score import score_sky
     light = score_sky(_base_conditions(precip_mm=2.0))

@@ -24,6 +24,7 @@ def _to_out(r) -> HourlyScoreOut:
         timestamp=r.timestamp, score=r.score, breakdown=r.breakdown.as_dict(),
         weighted_contribution=r.weighted_contribution,
         time_of_day_multiplier=r.time_of_day_multiplier, safety_flag=r.safety_flag,
+        precip_probability_pct=r.precip_probability_pct,
     )
 
 

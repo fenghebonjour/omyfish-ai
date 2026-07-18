@@ -19,6 +19,7 @@ class HourlyScoreOut(BaseModel):
     weighted_contribution: dict
     time_of_day_multiplier: float
     safety_flag: Optional[str] = None
+    precip_probability_pct: Optional[float] = None  # chance of rain, display-only
 
 
 class TimeWindowOut(BaseModel):

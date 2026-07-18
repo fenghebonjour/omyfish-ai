@@ -124,6 +124,7 @@ async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> Forecas
             wind_speed_kmh=hourly["wind_speed_10m"][i],
             cloud_cover_pct=hourly["cloud_cover"][i],
             precip_mm=hourly["precipitation"][i],
+            precip_probability_pct=(hourly.get("precipitation_probability") or [None] * len(timestamps))[i],
             is_storm=hourly["weather_code"][i] in _STORM_WEATHER_CODES,
             is_heavy_precip=hourly["weather_code"][i] in _HEAVY_PRECIP_CODES,
             moon_phase=moon["phase"],
@@ -159,7 +160,8 @@ async def _fetch_open_meteo(client: httpx.AsyncClient, lat: float, lon: float) -
         "longitude": lon,
         "hourly": ",".join([
             "temperature_2m", "apparent_temperature", "pressure_msl",
-            "wind_speed_10m", "cloud_cover", "precipitation", "weather_code",
+            "wind_speed_10m", "cloud_cover", "precipitation",
+            "precipitation_probability", "weather_code",
         ]),
         "daily": "sunrise,sunset",
         "current": "weather_code,precipitation",

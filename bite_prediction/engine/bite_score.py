@@ -50,6 +50,9 @@ class HourlyConditions:
     minutes_from_moon_major: float   # minutes to nearest moon-overhead/underfoot event
     minutes_from_moon_minor: float   # minutes to nearest moonrise/moonset event
     is_heavy_precip: bool = False    # heavy rain/snow codes without a storm flag
+    # Chance of any rain (0-100, provider forecast). Display-only passthrough:
+    # scoring uses intensity (precip_mm) — fish don't mind rain, anglers do.
+    precip_probability_pct: Optional[float] = None
     # Exactly one of the two water blocks should be populated by the caller
     tide_rate_m_per_hr: Optional[float] = None   # signed; None if non-tidal water
     tide_pct_to_extreme: Optional[float] = None  # 0=at high/low, 1=at slack midpoint
@@ -86,6 +89,7 @@ class BiteScoreResult:
     weighted_contribution: dict    # each factor's actual point contribution to `score`
     time_of_day_multiplier: float
     safety_flag: Optional[str] = None
+    precip_probability_pct: Optional[float] = None  # display-only, not scored
 
 
 # --------------------------------------------------------------------------- #
@@ -291,6 +295,7 @@ def compute_bite_score(cond: HourlyConditions, species_key: str = "general") -> 
         weighted_contribution={k: round(v, 1) for k, v in weighted_contribution.items()},
         time_of_day_multiplier=tod_mult,
         safety_flag=safety_flag,
+        precip_probability_pct=cond.precip_probability_pct,
     )
 
 
