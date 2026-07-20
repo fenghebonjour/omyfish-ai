@@ -38,7 +38,8 @@ docker compose up -d --force-recreate ai-service
 The container runs as root (no `USER` directive in the `Dockerfile`), so no `chown`/`sudo` is
 needed even if the host cache directory ends up owned by `root`.
 
-**Since 2026-07-15, this failure mode is no longer silent.** If the gate fails to load:
+**Since 2026-07-15, this failure mode is no longer silent.** If the gate fails to load
+*unexpectedly*:
 - `GET /health` returns HTTP `503` with `{"status": "degraded", "gate_loaded": false}` instead
   of a plain `200`, so Docker's `HEALTHCHECK` (and any orchestration/monitoring watching it)
   flags the container as unhealthy immediately.
@@ -47,6 +48,12 @@ needed even if the host cache directory ends up owned by `root`.
 
 If you see `503`s across the board, the fix above (populate the cache) is almost certainly the
 answer — check the startup logs first to confirm it's the gate and not something else.
+
+This is distinct from **intentional** stub mode: deployments that set `DISABLE_FISH_ID` (e.g. the
+HuggingFace Space, which has no model volumes mounted) skip loading the model and gate on
+purpose. In that mode `/health` still reports `200`/`"status": "ok"` with `"fish_id_disabled":
+true`, and `/predict` still returns stub predictions with `"uncertain": true` — it does not 503.
+The `503` path only fires when the gate was *expected* to load (no `DISABLE_FISH_ID`) and didn't.
 
 ## Q: I made a code change to `main.py` (or another Python file) and it doesn't seem to take effect when I hit the running service. Why?
 

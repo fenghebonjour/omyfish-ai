@@ -22,6 +22,7 @@ METADATA_PATH = os.getenv("METADATA_PATH", "/metadata/fish_info.json")
 _predictor = None
 _gate = None
 _metadata: dict = {}
+_fish_id_disabled = False
 
 
 def _load_metadata() -> dict:
@@ -34,12 +35,13 @@ def _load_metadata() -> dict:
 
 @app.on_event("startup")
 async def startup():
-    global _predictor, _gate, _metadata
+    global _predictor, _gate, _metadata, _fish_id_disabled
     _metadata = _load_metadata()
     if os.getenv("DISABLE_FISH_ID"):
         # Bite-score-only deployments (e.g. bundled inside the Streamlit
         # HF Space) skip the model + CLIP gate loads entirely: /predict
         # stays in stub mode and startup is instant.
+        _fish_id_disabled = True
         print("DISABLE_FISH_ID set — skipping model and fish-gate loading")
         return
     try:
@@ -82,7 +84,7 @@ class PredictResponse(BaseModel):
 
 @app.post("/predict", response_model=PredictResponse)
 async def predict(request: PredictRequest):
-    if _gate is None:
+    if _gate is None and not _fish_id_disabled:
         raise HTTPException(
             status_code=503,
             detail="Fish gate unavailable — refusing to classify without non-fish rejection. Check ai-service startup logs.",
@@ -94,10 +96,11 @@ async def predict(request: PredictRequest):
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid image data")
 
-    fish, fish_prob = _gate.is_fish(image)
-    if not fish:
-        print(f"Image rejected by fish gate (fish_prob={fish_prob})")
-        return PredictResponse(predictions=[], uncertain=True, is_fish=False)
+    if _gate is not None:
+        fish, fish_prob = _gate.is_fish(image)
+        if not fish:
+            print(f"Image rejected by fish gate (fish_prob={fish_prob})")
+            return PredictResponse(predictions=[], uncertain=True, is_fish=False)
 
     if _predictor is None:
         return PredictResponse(
@@ -135,12 +138,14 @@ async def predict(request: PredictRequest):
 @app.get("/health")
 async def health(response: Response):
     gate_loaded = _gate is not None
-    if not gate_loaded:
+    degraded = not gate_loaded and not _fish_id_disabled
+    if degraded:
         response.status_code = 503
     return {
-        "status": "ok" if gate_loaded else "degraded",
+        "status": "degraded" if degraded else "ok",
         "model_loaded": _predictor is not None,
         "gate_loaded": gate_loaded,
+        "fish_id_disabled": _fish_id_disabled,
     }
 
 
