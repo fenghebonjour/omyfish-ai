@@ -39,6 +39,14 @@ class AskResponse(BaseModel):
     disclaimer: str = "Informational only — verify current regulations at quebec.ca before fishing."
 
 
+class StationOut(BaseModel):
+    no_bqma: str
+    hydronyme: str
+    latitude: float
+    longitude: float
+    distance_km: float
+
+
 class ConsumptionResponse(BaseModel):
     lat: float
     lon: float

@@ -16,6 +16,38 @@ ZONES_QUERY_URL = (
 )
 _HTTP_TIMEOUT = 10.0
 
+# Zone polygons/names essentially never change year to year (see
+# engine/zones.py) — cache the full GeoJSON in-process for the life of
+# the server instead of re-fetching all 34 zones on every map render.
+_zones_geojson_cache: dict | None = None
+
+
+class ZonesGeoJSONError(RuntimeError):
+    """Raised when the zone provider is unreachable for the full-zones fetch."""
+
+
+async def fetch_all_zones_geojson() -> dict:
+    global _zones_geojson_cache
+    if _zones_geojson_cache is not None:
+        return _zones_geojson_cache
+
+    params = {
+        "where": "1=1",
+        "outFields": "ID_ZONE,NM_ENDRO_EN,VA_HYPRL_REGLE_EN",
+        "outSR": 4326,
+        "f": "geojson",
+    }
+    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
+        try:
+            resp = await client.get(ZONES_QUERY_URL, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+        except (httpx.HTTPError, ValueError) as e:
+            raise ZonesGeoJSONError(f"zone provider unreachable: {e}") from e
+
+    _zones_geojson_cache = data
+    return data
+
 
 class ZoneLookupError(RuntimeError):
     """Raised when the zone provider is unreachable or returns no match."""

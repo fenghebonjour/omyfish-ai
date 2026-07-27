@@ -115,6 +115,70 @@ def test_consumption_returns_advisory_for_nearest_matching_station(client, monke
     assert body["size_class"] == "small"
 
 
+def test_zones_geojson_returns_provider_data(client, monkeypatch):
+    fake_geojson = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"NM_ENDRO_EN": "Zone 27"}}]}
+
+    async def fake_fetch_all_zones_geojson():
+        return fake_geojson
+
+    monkeypatch.setattr(router_module, "fetch_all_zones_geojson", fake_fetch_all_zones_geojson)
+
+    r = client.get("/regs/zones/geojson")
+    assert r.status_code == 200
+    assert r.json() == fake_geojson
+
+
+def test_zones_geojson_provider_down_returns_503(client, monkeypatch):
+    from regs_advisor.providers.zone_client import ZonesGeoJSONError
+
+    async def fake_fetch_all_zones_geojson():
+        raise ZonesGeoJSONError("unreachable")
+
+    monkeypatch.setattr(router_module, "fetch_all_zones_geojson", fake_fetch_all_zones_geojson)
+
+    r = client.get("/regs/zones/geojson")
+    assert r.status_code == 503
+
+
+def test_consumption_stations_sorted_by_distance(client, monkeypatch):
+    near = Station(no_bqma="1", hydronyme="Near Lake", latitude=46.94, longitude=-71.39)
+    far = Station(no_bqma="2", hydronyme="Far Lake", latitude=47.5, longitude=-72.0)
+
+    async def fake_fetch_nearby_stations(lat, lon):
+        return [far, near]
+
+    monkeypatch.setattr(router_module, "fetch_nearby_stations", fake_fetch_nearby_stations)
+
+    r = client.get("/regs/consumption/stations", params={"lat": 46.9377, "lon": -71.3866})
+    assert r.status_code == 200
+    body = r.json()
+    assert [s["hydronyme"] for s in body] == ["Near Lake", "Far Lake"]
+    assert body[0]["distance_km"] < body[1]["distance_km"]
+
+
+def test_consumption_stations_respects_limit(client, monkeypatch):
+    stations = [Station(no_bqma=str(i), hydronyme=f"Lake {i}", latitude=46.9 + i * 0.01, longitude=-71.3) for i in range(5)]
+
+    async def fake_fetch_nearby_stations(lat, lon):
+        return stations
+
+    monkeypatch.setattr(router_module, "fetch_nearby_stations", fake_fetch_nearby_stations)
+
+    r = client.get("/regs/consumption/stations", params={"lat": 46.9377, "lon": -71.3866, "limit": 2})
+    assert r.status_code == 200
+    assert len(r.json()) == 2
+
+
+def test_consumption_stations_provider_down_returns_503(client, monkeypatch):
+    async def fake_fetch_nearby_stations(lat, lon):
+        raise ConsumptionLookupError("unreachable")
+
+    monkeypatch.setattr(router_module, "fetch_nearby_stations", fake_fetch_nearby_stations)
+
+    r = client.get("/regs/consumption/stations", params={"lat": 46.9377, "lon": -71.3866})
+    assert r.status_code == 503
+
+
 def test_consumption_no_stations_returns_404(client, monkeypatch):
     async def fake_fetch_nearby_stations(lat, lon):
         return []

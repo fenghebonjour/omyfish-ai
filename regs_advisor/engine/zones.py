@@ -13,6 +13,11 @@ ZONE_NAME_TO_ID is scraped once from the static <select> options embedded
 in https://peche.faune.gouv.qc.ca/regpec/en/info/reglements (34 zones,
 boundaries/names essentially never change year to year) rather than
 re-fetched per request.
+
+Maintenance: Quebec's sport-fishing regs republish annually, effective
+~April 1. Re-verify this table (and the limits-page HTML structure
+limits.py parses) each spring — a rename or renumbering here would
+silently misroute limits lookups to the wrong zone.
 """
 
 from dataclasses import dataclass

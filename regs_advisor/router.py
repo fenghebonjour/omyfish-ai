@@ -16,8 +16,12 @@ from regs_advisor.providers.consumption_client import (
 )
 from regs_advisor.providers.limits_client import LimitsLookupError, fetch_limits
 from regs_advisor.providers.llm_client import LLMError, ask as ask_llm
-from regs_advisor.providers.zone_client import ZoneLookupError, fetch_zone
-from regs_advisor.schemas import AskRequest, AskResponse, ConsumptionResponse, LimitsResponse, SpeciesLimitOut
+from regs_advisor.providers.zone_client import (
+    ZoneLookupError, ZonesGeoJSONError, fetch_all_zones_geojson, fetch_zone,
+)
+from regs_advisor.schemas import (
+    AskRequest, AskResponse, ConsumptionResponse, LimitsResponse, SpeciesLimitOut, StationOut,
+)
 
 router = APIRouter(prefix="/regs", tags=["regs-advisor"])
 
@@ -58,6 +62,34 @@ async def get_limits(
             length_limit=r.length_limit, fishing_device=r.fishing_device, note=r.note,
         ) for r in rules],
     )
+
+
+@router.get("/zones/geojson")
+async def get_zones_geojson():
+    """All 34 zone polygons for map overlay — see engine/zones.py, boundaries
+    essentially never change so the provider caches this in-process."""
+    try:
+        return await fetch_all_zones_geojson()
+    except ZonesGeoJSONError as e:
+        raise HTTPException(503, str(e))
+
+
+@router.get("/consumption/stations", response_model=list[StationOut])
+async def get_consumption_stations(lat: float, lon: float, limit: int = Query(15, ge=1, le=50)):
+    """Nearest consumption-advisory sampling sites, for map markers."""
+    try:
+        stations = await fetch_nearby_stations(lat, lon)
+    except ConsumptionLookupError as e:
+        raise HTTPException(503, str(e))
+
+    ranked = sorted(stations, key=lambda s: haversine_km(lat, lon, s.latitude, s.longitude))
+    return [
+        StationOut(
+            no_bqma=s.no_bqma, hydronyme=s.hydronyme, latitude=s.latitude, longitude=s.longitude,
+            distance_km=round(haversine_km(lat, lon, s.latitude, s.longitude), 1),
+        )
+        for s in ranked[:limit]
+    ]
 
 
 @router.get("/consumption", response_model=ConsumptionResponse)
