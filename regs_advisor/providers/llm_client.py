@@ -1,7 +1,7 @@
 """
 llm_client.py — regs_advisor.providers
 ------------------------------------------
-Thin wrapper around the Claude API for the "Regs & Tips" chat endpoint.
+Thin wrapper around the Groq API for the "Regs & Tips" chat endpoint.
 Single-hop RAG: retrieved KB chunks + the user's question in one message,
 one non-streaming call — no agentic loop, no tool use (see
 docs/REGS_CHATBOT_PLAN.md "On LangChain": this is a single-hop retrieval
@@ -10,9 +10,9 @@ problem, not one that needs orchestration).
 
 import os
 
-import anthropic
+import groq
 
-MODEL = os.getenv("REGS_CHAT_MODEL", "claude-opus-5")
+MODEL = os.getenv("REGS_CHAT_MODEL", "llama-3.3-70b-versatile")
 MAX_TOKENS = 1024
 
 SYSTEM_PROMPT = (
@@ -27,29 +27,34 @@ SYSTEM_PROMPT = (
 
 
 class LLMError(RuntimeError):
-    """Raised when the Claude API call fails or is refused."""
+    """Raised when the Groq API call fails or is refused."""
 
 
-def _client() -> anthropic.Anthropic:
-    return anthropic.Anthropic()
+def _client() -> groq.Groq:
+    return groq.Groq()
 
 
 def ask(question: str, context_chunks: list[str]) -> str:
     context = "\n\n---\n\n".join(context_chunks) if context_chunks else "(no matching reference material found)"
     user_message = f"Reference context:\n\n{context}\n\n---\n\nQuestion: {question}"
 
+    # groq.GroqError (not just APIError) also covers client-construction
+    # failures like a missing GROQ_API_KEY — catch it here so those surface
+    # as a clean 503 instead of leaking an unhandled exception past the router.
     try:
-        response = _client().messages.create(
+        response = _client().chat.completions.create(
             model=MODEL,
             max_tokens=MAX_TOKENS,
-            system=SYSTEM_PROMPT,
-            output_config={"effort": "low"},
-            messages=[{"role": "user", "content": user_message}],
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_message},
+            ],
         )
-    except anthropic.APIError as e:
-        raise LLMError(f"Claude API request failed: {e}") from e
+    except groq.GroqError as e:
+        raise LLMError(f"Groq API request failed: {e}") from e
 
-    if response.stop_reason == "refusal":
+    choice = response.choices[0]
+    if choice.finish_reason == "content_filter":
         raise LLMError("The assistant declined to answer this question.")
 
-    return next((b.text for b in response.content if b.type == "text"), "").strip()
+    return (choice.message.content or "").strip()
