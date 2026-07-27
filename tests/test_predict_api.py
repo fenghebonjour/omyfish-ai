@@ -110,7 +110,7 @@ def test_predict_unknown_species_falls_back_to_title_case(client, monkeypatch):
 
 def test_health_reports_model_state(client):
     body = client.get("/health").json()
-    assert body == {"status": "ok", "model_loaded": False}
+    assert body == {"status": "ok", "model_loaded": False, "gate_loaded": False, "fish_id_disabled": True}
 
 
 def test_species_from_predictor_classes(client, monkeypatch):
