@@ -230,6 +230,70 @@ def test_ask_returns_answer_with_sources(client, monkeypatch):
     assert len(body["sources"]) > 0
 
 
+def test_ask_injects_live_limits_when_zone_and_species_named(client, monkeypatch):
+    async def fake_fetch_limits(id_zone, zone_name):
+        assert zone_name == "Zone 8"
+        return ZoneLimits(zone_name=zone_name, general_rules=[WALLEYE_RULE], other_sections=[])
+
+    captured = {}
+
+    def fake_ask_llm(question, context_chunks):
+        captured["context_chunks"] = context_chunks
+        return "In Zone 8, the walleye limit is 6 in all."
+
+    monkeypatch.setattr(router_module, "fetch_limits", fake_fetch_limits)
+    monkeypatch.setattr(router_module, "ask_llm", fake_ask_llm)
+
+    r = client.post("/regs/ask", json={"question": "walleye limits in zone 8"})
+    assert r.status_code == 200
+    body = r.json()
+    assert "Zone 8 official limits (live lookup)" in body["sources"]
+    assert any("Live official regulations lookup" in c for c in captured["context_chunks"])
+    assert any("6 in all" in c for c in captured["context_chunks"])
+
+
+def test_ask_falls_back_to_kb_when_species_not_in_zone_limits(client, monkeypatch):
+    async def fake_fetch_limits(id_zone, zone_name):
+        return ZoneLimits(zone_name=zone_name, general_rules=[WALLEYE_RULE], other_sections=[])
+
+    def fake_ask_llm(question, context_chunks):
+        assert not any("Live official regulations lookup" in c for c in context_chunks)
+        return "No data on that species in this context."
+
+    monkeypatch.setattr(router_module, "fetch_limits", fake_fetch_limits)
+    monkeypatch.setattr(router_module, "ask_llm", fake_ask_llm)
+
+    r = client.post("/regs/ask", json={"question": "muskellunge limits in zone 8"})
+    assert r.status_code == 200
+    assert "Zone 8 official limits (live lookup)" not in r.json()["sources"]
+
+
+def test_ask_falls_back_to_kb_when_live_limits_provider_down(client, monkeypatch):
+    async def fake_fetch_limits(id_zone, zone_name):
+        raise LimitsLookupError("unreachable")
+
+    def fake_ask_llm(question, context_chunks):
+        return "Falling back to general reference material."
+
+    monkeypatch.setattr(router_module, "fetch_limits", fake_fetch_limits)
+    monkeypatch.setattr(router_module, "ask_llm", fake_ask_llm)
+
+    r = client.post("/regs/ask", json={"question": "walleye limits in zone 8"})
+    assert r.status_code == 200
+    assert "Zone 8 official limits (live lookup)" not in r.json()["sources"]
+
+
+def test_ask_no_zone_or_species_named_uses_kb_only(client, monkeypatch):
+    def fake_ask_llm(question, context_chunks):
+        assert not any("Live official regulations lookup" in c for c in context_chunks)
+        return "Smallmouth bass respond well to tube jigs on rocky points."
+
+    monkeypatch.setattr(router_module, "ask_llm", fake_ask_llm)
+
+    r = client.post("/regs/ask", json={"question": "best lure for smallmouth bass"})
+    assert r.status_code == 200
+
+
 def test_ask_unrelated_question_returns_404(client):
     r = client.post("/regs/ask", json={"question": "xyzzy quantum blockchain nonsense"})
     assert r.status_code == 404
