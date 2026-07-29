@@ -6,6 +6,8 @@ Confirmed live, unauthenticated, no API key (see docs/REGS_CHATBOT_PLAN.md
 Phase 0). Swap this adapter if the provider ever changes.
 """
 
+import asyncio
+
 import httpx
 
 from regs_advisor.engine.zones import ZoneMatch, resolve_zone_id
@@ -15,6 +17,12 @@ ZONES_QUERY_URL = (
     "ZonesPecheEn/MapServer/0/query"
 )
 _HTTP_TIMEOUT = 10.0
+
+# httpx's own timeout only bounds gaps *between* reads, not total transfer
+# time — a slowly-trickling response never hits it. asyncio.wait_for below
+# gives every request here a hard wall-clock ceiling regardless of how the
+# bytes arrive.
+_TOTAL_TIMEOUT = 20.0
 
 # Zone polygons/names essentially never change year to year (see
 # engine/zones.py) — cache the full GeoJSON in-process for the life of
@@ -45,10 +53,11 @@ async def fetch_all_zones_geojson() -> dict:
     }
     async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
         try:
-            resp = await client.get(ZONES_QUERY_URL, params=params)
+            resp = await asyncio.wait_for(
+                client.get(ZONES_QUERY_URL, params=params), timeout=_TOTAL_TIMEOUT)
             resp.raise_for_status()
             data = resp.json()
-        except (httpx.HTTPError, ValueError) as e:
+        except (httpx.HTTPError, ValueError, asyncio.TimeoutError) as e:
             raise ZonesGeoJSONError(f"zone provider unreachable: {e}") from e
 
     _zones_geojson_cache = data
@@ -71,10 +80,11 @@ async def fetch_zone(lat: float, lon: float) -> ZoneMatch:
     }
     async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
         try:
-            resp = await client.get(ZONES_QUERY_URL, params=params)
+            resp = await asyncio.wait_for(
+                client.get(ZONES_QUERY_URL, params=params), timeout=_TOTAL_TIMEOUT)
             resp.raise_for_status()
             data = resp.json()
-        except (httpx.HTTPError, ValueError) as e:
+        except (httpx.HTTPError, ValueError, asyncio.TimeoutError) as e:
             raise ZoneLookupError(f"zone provider unreachable: {e}") from e
 
     features = data.get("features") or []
