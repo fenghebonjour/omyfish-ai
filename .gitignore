@@ -2,3 +2,6 @@
 docs/BEGINNER_GUIDE.md
 
 __pycache__/
+
+# Local secrets (copy .env.example -> .env)
+.env
