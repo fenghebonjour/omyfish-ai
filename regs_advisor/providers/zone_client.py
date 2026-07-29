@@ -36,6 +36,12 @@ async def fetch_all_zones_geojson() -> dict:
         "outFields": "ID_ZONE,NM_ENDRO_EN,VA_HYPRL_REGLE_EN",
         "outSR": 4326,
         "f": "geojson",
+        # The provider's full-resolution boundaries are ~50MB for all 34
+        # zones — far more detail than a Leaflet overlay needs and slow
+        # enough to fetch that it stalled the Map tab for minutes. This
+        # asks ArcGIS to simplify geometry server-side (~1MB, still
+        # visually accurate at province scale).
+        "maxAllowableOffset": 0.001,
     }
     async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
         try:
