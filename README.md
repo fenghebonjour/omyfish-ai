@@ -11,10 +11,11 @@ license: mit
 
 # omyfish-ai
 
-Standalone AI microservice powering **OMyFish — Your AI Fishing Companion** (*When, Where, What you catch.*), shared by all three OMyFish projects. Two domains:
+Standalone AI microservice powering **OMyFish — Your AI Fishing Companion** (*When, Where, What you catch.*), shared by every enterprise sibling in the family. Three domains:
 
-- **Fish identification** (`/predict`) — species ID from a photo (CLIP gate + EfficientNet-B3).
-- **Bite Score** (`/bite-score/*`) — an explainable 0–100 fishing-timing forecast, hourly up to 14 days, tuned per species.
+- **Bite Score** (`/bite-score/*`) — *When*: an explainable 0–100 fishing-timing forecast, hourly up to 14 days, tuned per species.
+- **Fish identification** (`/predict`) — *Where*: species ID from a photo (CLIP gate + EfficientNet-B3), paired with GPS-logged observations on a map in the enterprise siblings.
+- **Regs & Tips chatbot** (`/regs/*`, newest addition) — *What*: Quebec fishing-regulation lookups plus a free-form Q&A chatbot powered by the Groq API, so anglers know what they can legally keep.
 
 > **HuggingFace Space note:** the YAML header above makes this repo deployable as-is as a Docker
 > Space. The Space has no model volumes mounted, so `/predict` runs in stub mode and the CLIP
@@ -25,10 +26,12 @@ Standalone AI microservice powering **OMyFish — Your AI Fishing Companion** (*
 
 | Repo | Role |
 |---|---|
-| [omyfish-python](https://github.com/fenghebonjour/omyfish-python) | Python origin — Streamlit + FastAPI, deployed on HuggingFace Spaces |
-| [omyfish-dotnet](https://github.com/fenghebonjour/omyfish-dotnet) | .NET 10 enterprise rewrite — Clean Architecture + CQRS |
+| [omyfish-python](https://github.com/fenghebonjour/omyfish-python) | Python origin — kept in place for training the fish-ID model; Streamlit + FastAPI, deployed on HuggingFace Spaces |
 | [omyfish-java](https://github.com/fenghebonjour/omyfish-java) | Java 21 enterprise rewrite — Hexagonal Architecture + Event-Driven |
-| **omyfish-ai** (this) | Shared AI microservice — used by all three above |
+| [omyfish-dotnet](https://github.com/fenghebonjour/omyfish-dotnet) | .NET 10 enterprise rewrite — Clean Architecture + CQRS |
+| [omyfish-python-web](https://github.com/fenghebonjour/omyfish-python-web) | Django monolith (public) — newest enterprise sibling |
+| omyfish-ios | SwiftUI native client (private) — newest sibling, talks to this service directly |
+| **omyfish-ai** (this) | Shared AI microservice — used by all five above |
 
 ## API
 
@@ -84,6 +87,20 @@ Every score ships with the full six-factor breakdown — that transparency is a 
 
 Data sources (no API keys needed): weather from [Open-Meteo](https://open-meteo.com), tides from NOAA CO-OPS (nearest reference station within 50 km; non-tidal waters fall back to a neutral water factor), solunar computed locally with `ephem`. See `docs/reference/bite_engine/` for the full design rationale.
 
+### Regs & Tips (newest addition)
+
+Quebec fishing-regulation lookups plus a free-form Q&A chatbot, powered by the [Groq API](https://groq.com):
+
+```
+GET  /regs/limits?lat=..&lon=..&species=..        → zone catch/length limits
+GET  /regs/zones/geojson                          → all 34 zone polygons, for map overlay
+GET  /regs/consumption/stations?lat=..&lon=..      → nearest mercury/consumption sampling sites
+GET  /regs/consumption?lat=..&lon=..&species=..    → meals-per-month advisory for a species/size
+POST /regs/ask   { "question": "..." }  → { "answer": "...", "sources": [...] }
+```
+
+`/regs/ask` does single-hop retrieval-augmented generation: relevant chunks from `regs_advisor/knowledge_base/` are retrieved and passed to Groq (`llama-3.3-70b-versatile` by default, `REGS_CHAT_MODEL` to override) alongside the question in one non-streaming call — no agentic loop. The model is instructed to answer only from the supplied context and to always remind the user to verify current regulations before fishing. Requires a `GROQ_API_KEY` environment variable; see `.env.example`.
+
 ## Quick Start (standalone)
 
 ```bash
@@ -132,8 +149,15 @@ omyfish-ai/
     providers/         The only I/O boundary (Open-Meteo, NOAA CO-OPS, ephem)
     router.py          FastAPI glue (/bite-score/*)
     schemas.py         Pydantic I/O models
+  regs_advisor/
+    engine/            Zone/limits/consumption parsing, question parsing, retrieval — no I/O
+    providers/         Zone/limits/consumption clients + llm_client.py (Groq)
+    knowledge_base/    Markdown reference docs used for /ask retrieval
+    router.py          FastAPI glue (/regs/*)
+    schemas.py         Pydantic I/O models
   tests/
     bite_prediction/   pytest suite — runs with zero network access
+    regs_advisor/      pytest suite
   docs/reference/
     bite_engine/       Original design spec, kept as "why" documentation
   requirements.txt
