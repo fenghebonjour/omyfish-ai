@@ -15,7 +15,7 @@ import groq
 
 logger = logging.getLogger(__name__)
 
-MODEL = os.getenv("REGS_CHAT_MODEL", "llama-3.3-70b-versatile")
+MODEL = os.getenv("REGS_CHAT_MODEL", "openai/gpt-oss-120b")
 MAX_TOKENS = 1024
 
 SYSTEM_PROMPT = (
