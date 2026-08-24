@@ -20,6 +20,8 @@ Swap the implementation here if a vendor changes — nothing in engine/
 or router.py needs to know.
 """
 
+import asyncio
+import logging
 import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -28,6 +30,8 @@ import ephem
 import httpx
 
 from bite_prediction.engine import HourlyConditions
+
+logger = logging.getLogger(__name__)
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 NOAA_STATIONS_URL = (
@@ -38,6 +42,11 @@ NOAA_PREDICTIONS_URL = "https://api.tidesandcurrents.noaa.gov/api/prod/datagette
 
 MAX_TIDE_STATION_KM = 50.0
 _HTTP_TIMEOUT = 10.0
+# HF Spaces' shared outbound IPs get intermittently rate-limited/throttled
+# by Open-Meteo (the one mandatory feed) — retry a couple of times with
+# backoff before surfacing a 503 to the user.
+_OPEN_METEO_RETRIES = 2
+_OPEN_METEO_RETRY_DELAY = 1.5
 _STORM_WEATHER_CODES = {95, 96, 99}  # WMO thunderstorm codes
 # WMO heavy-precipitation codes: heavy rain (65), heavy freezing rain (67),
 # heavy snow (75), violent rain showers (82), heavy snow showers (86)
@@ -169,12 +178,22 @@ async def _fetch_open_meteo(client: httpx.AsyncClient, lat: float, lon: float) -
         "past_days": 1,       # history for the 3h/24h pressure deltas
         "forecast_days": 16,  # 14-day horizon regardless of time of day (16 = Open-Meteo max)
     }
-    try:
-        resp = await client.get(OPEN_METEO_URL, params=params)
-        resp.raise_for_status()
-        data = resp.json()
-    except httpx.HTTPError as e:
-        raise WeatherProviderError(f"Open-Meteo request failed: {e}") from e
+    last_error: httpx.HTTPError | None = None
+    for attempt in range(_OPEN_METEO_RETRIES + 1):
+        try:
+            resp = await client.get(OPEN_METEO_URL, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+            break
+        except httpx.HTTPError as e:
+            last_error = e
+            logger.warning("Open-Meteo request failed (attempt %d/%d): %s",
+                            attempt + 1, _OPEN_METEO_RETRIES + 1, e)
+            if attempt < _OPEN_METEO_RETRIES:
+                await asyncio.sleep(_OPEN_METEO_RETRY_DELAY * (attempt + 1))
+    else:
+        raise WeatherProviderError(f"Open-Meteo request failed: {last_error}") from last_error
+
     if "hourly" not in data or "daily" not in data:
         raise WeatherProviderError(f"Open-Meteo response missing hourly/daily data: {data}")
     return data
