@@ -8,9 +8,12 @@ docs/REGS_CHATBOT_PLAN.md "On LangChain": this is a single-hop retrieval
 problem, not one that needs orchestration).
 """
 
+import logging
 import os
 
 import groq
+
+logger = logging.getLogger(__name__)
 
 MODEL = os.getenv("REGS_CHAT_MODEL", "llama-3.3-70b-versatile")
 MAX_TOKENS = 1024
@@ -51,6 +54,7 @@ def ask(question: str, context_chunks: list[str]) -> str:
             ],
         )
     except groq.GroqError as e:
+        logger.warning("Groq API request failed: %s", e)
         raise LLMError(f"Groq API request failed: {e}") from e
 
     choice = response.choices[0]
