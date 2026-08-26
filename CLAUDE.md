@@ -27,5 +27,8 @@ preserve this invariant; add a test for it if you touch `compute_bite_score`.
 ## Out of scope until further notice
 - No ML/sklearn dependency for scoring — `calibration.py` is a documented roadmap, not something
   to implement yet. It requires real catch-log data from a closed beta first.
-- Providers are chosen and wired (2026-07-15): Open-Meteo for weather, NOAA CO-OPS for tides,
-  local `ephem` for solunar. Don't swap a provider unilaterally — ask first.
+- Providers are chosen and wired: OpenWeatherMap for weather (switched 2026-08-26 from
+  Open-Meteo, which kept throttling HF Spaces' shared outbound IP; needs `OPENWEATHERMAP_API_KEY`
+  as an HF Space secret), NOAA CO-OPS for tides, local `ephem` for solunar. OpenWeatherMap's free
+  hourly data only reaches 48h out, so `/bite-score/forecast`'s horizon is capped at 48h (was 14
+  days under Open-Meteo). Don't swap a provider or change the horizon cap unilaterally — ask first.

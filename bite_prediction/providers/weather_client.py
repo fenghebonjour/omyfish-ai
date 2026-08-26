@@ -4,10 +4,15 @@ weather_client.py — bite_prediction.providers
 The one adapter boundary this domain has: fetching hourly weather/tide
 data and shaping it into the engine's HourlyConditions struct.
 
-Providers (chosen 2026-07-15):
-  - Weather: Open-Meteo (free, no key) — hourly temperature, apparent
-    temperature, sea-level pressure, wind, cloud cover, precipitation,
-    and weather_code (95/96/99 = thunderstorm -> is_storm).
+Providers (weather switched to OpenWeatherMap 2026-08-26 — Open-Meteo kept
+throttling HF Spaces' shared outbound IP even after retry/backoff, see
+commit 5d08ef7):
+  - Weather: OpenWeatherMap One Call 3.0 (keyed, OPENWEATHERMAP_API_KEY) —
+    hourly temperature, feels-like, sea-level pressure, wind, cloud cover,
+    precipitation, and a condition code (2xx = thunderstorm -> is_storm).
+    Its free hourly data only reaches 48h out (vs. Open-Meteo's 16 days),
+    so /bite-score/forecast's horizon is capped at 48h (router.py) — no
+    hybrid daily-summary fallback for the days-3-8 range.
   - Tides: NOAA CO-OPS (free, no key) — hourly predicted heights from
     the nearest tide station within ~50 km, turned into a signed
     rate-of-change. No station in range (inland/non-US water) -> both
@@ -23,6 +28,7 @@ or router.py needs to know.
 import asyncio
 import logging
 import math
+import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
@@ -33,7 +39,8 @@ from bite_prediction.engine import HourlyConditions
 
 logger = logging.getLogger(__name__)
 
-OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
+OPENWEATHERMAP_URL = "https://api.openweathermap.org/data/3.0/onecall"
+OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY", "")
 NOAA_STATIONS_URL = (
     "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json"
     "?type=tidepredictions"
@@ -42,15 +49,12 @@ NOAA_PREDICTIONS_URL = "https://api.tidesandcurrents.noaa.gov/api/prod/datagette
 
 MAX_TIDE_STATION_KM = 50.0
 _HTTP_TIMEOUT = 10.0
-# HF Spaces' shared outbound IPs get intermittently rate-limited/throttled
-# by Open-Meteo (the one mandatory feed) — retry a couple of times with
-# backoff before surfacing a 503 to the user.
-_OPEN_METEO_RETRIES = 2
-_OPEN_METEO_RETRY_DELAY = 1.5
-_STORM_WEATHER_CODES = {95, 96, 99}  # WMO thunderstorm codes
-# WMO heavy-precipitation codes: heavy rain (65), heavy freezing rain (67),
-# heavy snow (75), violent rain showers (82), heavy snow showers (86)
-_HEAVY_PRECIP_CODES = {65, 67, 75, 82, 86}
+_WEATHER_RETRIES = 2
+_WEATHER_RETRY_DELAY = 1.5
+_STORM_CODE_MIN, _STORM_CODE_MAX = 200, 232  # OWM thunderstorm group (2xx)
+# OWM heavy-precipitation codes: heavy/very heavy/extreme rain (502/503/504),
+# freezing rain (511), heavy shower rain (522), heavy snow (602/622)
+_HEAVY_PRECIP_CODES = {502, 503, 504, 511, 522, 602, 622}
 
 # NOAA tide-prediction station list (~3k stations); fetched once per process.
 _stations_cache: list[dict] | None = None
@@ -69,7 +73,7 @@ class SunTimes:
 
 @dataclass
 class CurrentConditions:
-    """Open-Meteo current conditions — a nowcast, so a shower happening
+    """OpenWeatherMap current conditions — a nowcast, so a shower happening
     right now is caught even when the hourly forecast missed it."""
     time: datetime      # local naive
     precipitation_mm: float
@@ -86,7 +90,7 @@ class ForecastData:
 
 async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> ForecastData:
     async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
-        weather = await _fetch_open_meteo(client, lat, lon)
+        weather = await _fetch_openweathermap(client, lat, lon)
         # Tides are optional enrichment: any failure means None water fields,
         # which the engine scores as a neutral default.
         try:
@@ -94,48 +98,47 @@ async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> Forecas
         except Exception:
             tide_rates = {}
 
-    utc_offset = timedelta(seconds=weather["utc_offset_seconds"])
-    hourly = weather["hourly"]
+    utc_offset = timedelta(seconds=weather["timezone_offset"])
+
     sun_times = [
-        SunTimes(date=d, sunrise=datetime.fromisoformat(rise), sunset=datetime.fromisoformat(set_))
-        for d, rise, set_ in zip(weather["daily"]["time"],
-                                 weather["daily"]["sunrise"], weather["daily"]["sunset"])
+        SunTimes(
+            date=(datetime.utcfromtimestamp(d["dt"]) + utc_offset).date().isoformat(),
+            sunrise=datetime.utcfromtimestamp(d["sunrise"]) + utc_offset,
+            sunset=datetime.utcfromtimestamp(d["sunset"]) + utc_offset,
+        )
+        for d in weather["daily"]
     ]
     sun_by_date = {s.date: (s.sunrise.time(), s.sunset.time()) for s in sun_times}
 
-    timestamps = [datetime.fromisoformat(t) for t in hourly["time"]]  # local naive
-    pressures = hourly["pressure_msl"]
-    now_local = datetime.utcnow() + utc_offset
-
-    # Anchor at local midnight, not "now": clients chart the whole current
-    # day, so today's already-elapsed hours are included. Earlier hours
-    # (yesterday) were only fetched to compute pressure deltas.
-    day_start_local = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
+    hourly = weather["hourly"]
+    pressures = [h["pressure"] for h in hourly]
 
     conditions: list[HourlyConditions] = []
-    for i, ts in enumerate(timestamps):
-        if ts < day_start_local:
-            continue
+    for i, h in enumerate(hourly):
         if len(conditions) >= hours:
             break
 
-        ts_utc = ts - utc_offset
+        ts_utc = datetime.utcfromtimestamp(h["dt"])
+        ts = ts_utc + utc_offset  # local naive
+        code = h["weather"][0]["id"]
+        rain_mm = h.get("rain", {}).get("1h", 0.0)
+        snow_mm = h.get("snow", {}).get("1h", 0.0)
         moon = _moon_metrics(lat, lon, ts_utc)
         sunrise, sunset = sun_by_date.get(ts.date().isoformat(), (None, None))
 
         conditions.append(HourlyConditions(
             timestamp=ts,
-            air_temp_c=hourly["temperature_2m"][i],
-            feels_like_c=hourly["apparent_temperature"][i],
-            pressure_hpa=pressures[i],
+            air_temp_c=h["temp"],
+            feels_like_c=h["feels_like"],
+            pressure_hpa=h["pressure"],
             pressure_delta_3h=pressures[i] - pressures[i - 3] if i >= 3 else 0.0,
             pressure_delta_24h=pressures[i] - pressures[i - 24] if i >= 24 else 0.0,
-            wind_speed_kmh=hourly["wind_speed_10m"][i],
-            cloud_cover_pct=hourly["cloud_cover"][i],
-            precip_mm=hourly["precipitation"][i],
-            precip_probability_pct=(hourly.get("precipitation_probability") or [None] * len(timestamps))[i],
-            is_storm=hourly["weather_code"][i] in _STORM_WEATHER_CODES,
-            is_heavy_precip=hourly["weather_code"][i] in _HEAVY_PRECIP_CODES,
+            wind_speed_kmh=h["wind_speed"] * 3.6,  # OWM metric units are m/s
+            cloud_cover_pct=h["clouds"],
+            precip_mm=rain_mm + snow_mm,
+            precip_probability_pct=h.get("pop", 0.0) * 100,
+            is_storm=_STORM_CODE_MIN <= code <= _STORM_CODE_MAX,
+            is_heavy_precip=code in _HEAVY_PRECIP_CODES,
             moon_phase=moon["phase"],
             minutes_from_moon_major=moon["minutes_from_major"],
             minutes_from_moon_minor=moon["minutes_from_minor"],
@@ -147,12 +150,12 @@ async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> Forecas
 
     current = None
     cur = weather.get("current")
-    if cur and cur.get("weather_code") is not None:
-        code = cur["weather_code"]
+    if cur and cur.get("weather"):
+        code = cur["weather"][0]["id"]
         current = CurrentConditions(
-            time=datetime.fromisoformat(cur["time"]),
-            precipitation_mm=cur.get("precipitation") or 0.0,
-            is_storm=code in _STORM_WEATHER_CODES,
+            time=datetime.utcfromtimestamp(cur["dt"]) + utc_offset,
+            precipitation_mm=cur.get("rain", {}).get("1h", 0.0) + cur.get("snow", {}).get("1h", 0.0),
+            is_storm=_STORM_CODE_MIN <= code <= _STORM_CODE_MAX,
             is_heavy_precip=code in _HEAVY_PRECIP_CODES,
         )
 
@@ -160,42 +163,38 @@ async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> Forecas
 
 
 # --------------------------------------------------------------------------- #
-# Open-Meteo (weather — mandatory)
+# OpenWeatherMap (weather — mandatory)
 # --------------------------------------------------------------------------- #
 
-async def _fetch_open_meteo(client: httpx.AsyncClient, lat: float, lon: float) -> dict:
+async def _fetch_openweathermap(client: httpx.AsyncClient, lat: float, lon: float) -> dict:
+    if not OPENWEATHERMAP_API_KEY:
+        raise WeatherProviderError("OPENWEATHERMAP_API_KEY is not set")
+
     params = {
-        "latitude": lat,
-        "longitude": lon,
-        "hourly": ",".join([
-            "temperature_2m", "apparent_temperature", "pressure_msl",
-            "wind_speed_10m", "cloud_cover", "precipitation",
-            "precipitation_probability", "weather_code",
-        ]),
-        "daily": "sunrise,sunset",
-        "current": "weather_code,precipitation",
-        "timezone": "auto",
-        "past_days": 1,       # history for the 3h/24h pressure deltas
-        "forecast_days": 16,  # 14-day horizon regardless of time of day (16 = Open-Meteo max)
+        "lat": lat,
+        "lon": lon,
+        "appid": OPENWEATHERMAP_API_KEY,
+        "units": "metric",
+        "exclude": "minutely,alerts",
     }
     last_error: httpx.HTTPError | None = None
-    for attempt in range(_OPEN_METEO_RETRIES + 1):
+    for attempt in range(_WEATHER_RETRIES + 1):
         try:
-            resp = await client.get(OPEN_METEO_URL, params=params)
+            resp = await client.get(OPENWEATHERMAP_URL, params=params)
             resp.raise_for_status()
             data = resp.json()
             break
         except httpx.HTTPError as e:
             last_error = e
-            logger.warning("Open-Meteo request failed (attempt %d/%d): %s",
-                            attempt + 1, _OPEN_METEO_RETRIES + 1, e)
-            if attempt < _OPEN_METEO_RETRIES:
-                await asyncio.sleep(_OPEN_METEO_RETRY_DELAY * (attempt + 1))
+            logger.warning("OpenWeatherMap request failed (attempt %d/%d): %s",
+                            attempt + 1, _WEATHER_RETRIES + 1, e)
+            if attempt < _WEATHER_RETRIES:
+                await asyncio.sleep(_WEATHER_RETRY_DELAY * (attempt + 1))
     else:
-        raise WeatherProviderError(f"Open-Meteo request failed: {last_error}") from last_error
+        raise WeatherProviderError(f"OpenWeatherMap request failed: {last_error}") from last_error
 
     if "hourly" not in data or "daily" not in data:
-        raise WeatherProviderError(f"Open-Meteo response missing hourly/daily data: {data}")
+        raise WeatherProviderError(f"OpenWeatherMap response missing hourly/daily data: {data}")
     return data
 
 
@@ -243,7 +242,8 @@ async def _fetch_tide_rates(client: httpx.AsyncClient, lat: float, lon: float) -
         "station": station, "datum": "MLLW", "units": "metric",
         "time_zone": "gmt", "interval": "h",
         "begin_date": today.strftime("%Y%m%d"),
-        "end_date": (today + timedelta(days=15)).strftime("%Y%m%d"),
+        # +3 days covers the 48h forecast horizon plus timezone-offset slop.
+        "end_date": (today + timedelta(days=3)).strftime("%Y%m%d"),
     }
     resp = await client.get(NOAA_PREDICTIONS_URL, params=params)
     resp.raise_for_status()

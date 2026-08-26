@@ -85,7 +85,7 @@ GET /bite-score/species-key?name=Micropterus salmoides
 
 Every score ships with the full six-factor breakdown — that transparency is a product invariant, never collapse it to a bare number. Storm hours are capped at 15 and carry a `safety_flag` regardless of the other factors. `species` accepts a profile key or a resolvable common/scientific name; `/bite-score/species-key` maps a confirmed fish ID to the key a backend should store for that user's future forecasts.
 
-Data sources (no API keys needed): weather from [Open-Meteo](https://open-meteo.com), tides from NOAA CO-OPS (nearest reference station within 50 km; non-tidal waters fall back to a neutral water factor), solunar computed locally with `ephem`. See `docs/reference/bite_engine/` for the full design rationale.
+Data sources: weather from [OpenWeatherMap](https://openweathermap.org/api/one-call-3) (needs `OPENWEATHERMAP_API_KEY`; hourly data caps the forecast horizon at 48h), tides from NOAA CO-OPS (nearest reference station within 50 km; non-tidal waters fall back to a neutral water factor, no key needed), solunar computed locally with `ephem` (no key needed). See `docs/reference/bite_engine/` for the full design rationale.
 
 ### Regs & Tips (newest addition)
 
@@ -146,7 +146,7 @@ omyfish-ai/
     clip.py            CLIP zero-shot fallback
   bite_prediction/
     engine/            Pure scoring logic — no I/O, unit-testable offline
-    providers/         The only I/O boundary (Open-Meteo, NOAA CO-OPS, ephem)
+    providers/         The only I/O boundary (OpenWeatherMap, NOAA CO-OPS, ephem)
     router.py          FastAPI glue (/bite-score/*)
     schemas.py         Pydantic I/O models
   regs_advisor/
