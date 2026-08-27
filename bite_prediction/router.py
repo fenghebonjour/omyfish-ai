@@ -33,7 +33,7 @@ async def get_forecast(
     lat: float,
     lon: float,
     species: str = Query("general", description="Key from bite_prediction.engine.PROFILES, or a resolvable species name"),
-    hours: int = Query(48, le=48, description="Forecast horizon from now (local), max 48h (OpenWeatherMap hourly limit)"),
+    hours: int = Query(168, le=336, description="Forecast horizon from start of today (local), max 14 days (shorter if the OpenWeatherMap fallback is serving the request)"),
 ):
     species_key = resolve_species_key(species)
     if species_key is None:

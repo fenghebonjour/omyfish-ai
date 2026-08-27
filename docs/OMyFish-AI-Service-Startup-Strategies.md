@@ -40,7 +40,7 @@ Standalone AI microservice powering OMyFish -- Your AI Fishing Companion (When, 
 | METADATA_PATH | /metadata/fish_info.json | Path to species metadata |
 | DISABLE_FISH_ID | (unset) | If set, skips model/fish-gate loading entirely -- bite-score-only mode (used by the omyfish-python HF Space, which bundles this repo) |
 
-> **Bite Score has no checkpoint dependency but does need `OPENWEATHERMAP_API_KEY` for its weather provider (NOAA tides and local ephem solunar need no keys). The pure engine tests run fully offline: pytest tests/bite_prediction**
+> **Bite Score has no checkpoint dependency -- its primary weather provider (Open-Meteo), NOAA tides, and local ephem solunar need no API keys. `OPENWEATHERMAP_API_KEY` is optional, used only as a weather fallback if Open-Meteo is unavailable. The pure engine tests run fully offline: pytest tests/bite_prediction**
 
 ## Three Ways to Run This Service
 
@@ -166,7 +166,7 @@ Most of the time you do not run omyfish-ai directly at all. Both omyfish-dotnet 
 | predictors/clip.py | CLIP zero-shot fallback |
 | bite_prediction/router.py + schemas.py | /bite-score/* endpoints -- thin FastAPI glue + the public response contract |
 | bite_prediction/engine/ | Pure Bite Score math -- six-factor breakdown, species profiles, no I/O |
-| bite_prediction/providers/ | The only I/O boundary -- weather (OpenWeatherMap), tides (NOAA CO-OPS), solunar (ephem) |
+| bite_prediction/providers/ | The only I/O boundary -- weather (Open-Meteo, OpenWeatherMap fallback), tides (NOAA CO-OPS), solunar (ephem) |
 | tests/bite_prediction/ | Engine unit tests -- run offline, no network needed |
 | docs/reference/bite_engine/ | Full design rationale for the scoring model |
 | requirements.txt | FastAPI, PyTorch, Pillow, pydantic, uvicorn |
