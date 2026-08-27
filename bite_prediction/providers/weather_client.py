@@ -4,18 +4,30 @@ weather_client.py — bite_prediction.providers
 The one adapter boundary this domain has: fetching hourly weather/tide
 data and shaping it into the engine's HourlyConditions struct.
 
-Providers (weather: Open-Meteo primary, OpenWeatherMap fallback — restored
-2026-08-27 after 0a555ef had switched to OpenWeatherMap-only because
-Open-Meteo kept throttling HF Spaces' shared outbound IP; that risk is now
-handled by falling back instead of dropping Open-Meteo entirely):
-  - Weather: Open-Meteo (free, no key) — hourly temperature, apparent
+Providers (weather: Visual Crossing primary, Open-Meteo then OpenWeatherMap
+as a fallback chain — Visual Crossing added 2026-08-27 as the primary
+because its free tier counts a full 15-day hourly forecast as a single
+"record" against the 1,000/day quota, rather than being IP-throttled like
+Open-Meteo was on HF Spaces):
+  - Weather: Visual Crossing Timeline API (keyed, VISUALCROSSING_API_KEY)
+    — hourly temperature, feels-like, sea-level pressure, wind, cloud
+    cover, precipitation, and an `icon` field ("thunder"-prefixed values
+    -> is_storm). The icon alone misses wind-driven storms (verified
+    against Hurricane Ian's 2022-09-28 landfall: icon stayed "rain" all
+    day despite 113 km/h gusts), so is_storm also fires on windgust
+    >=62 km/h (NOAA Gale Warning threshold). No discrete heavy-precip
+    code exists in this API, so is_heavy_precip uses a standard
+    meteorological heavy-rain threshold (>=7.6mm in the hour) instead.
+    15-day horizon.
+    If Visual Crossing fails (including after retry/backoff), falls back
+    to Open-Meteo (free, no key) — hourly temperature, apparent
     temperature, sea-level pressure, wind, cloud cover, precipitation,
     and weather_code (95/96/99 = thunderstorm -> is_storm). 14-day horizon.
-    If Open-Meteo fails (including after retry/backoff), falls back to
-    OpenWeatherMap One Call 3.0 (keyed, OPENWEATHERMAP_API_KEY). Its free
-    hourly data only reaches 48h out, so a forecast served by the fallback
-    is shorter than one served by Open-Meteo — no hybrid daily-summary
-    fallback for the days-3-14 range in that case.
+    If Open-Meteo also fails, falls back further to OpenWeatherMap One
+    Call 3.0 (keyed, OPENWEATHERMAP_API_KEY). Its free hourly data only
+    reaches 48h out, so a forecast served by that last fallback is
+    shorter than one served by Visual Crossing or Open-Meteo — no hybrid
+    daily-summary fallback for the days-3-14 range in that case.
   - Tides: NOAA CO-OPS (free, no key) — hourly predicted heights from
     the nearest tide station within ~50 km, turned into a signed
     rate-of-change. No station in range (inland/non-US water) -> both
@@ -42,6 +54,8 @@ from bite_prediction.engine import HourlyConditions
 
 logger = logging.getLogger(__name__)
 
+VISUAL_CROSSING_URL = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline"
+VISUALCROSSING_API_KEY = os.getenv("VISUALCROSSING_API_KEY", "")
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 OPENWEATHERMAP_URL = "https://api.openweathermap.org/data/3.0/onecall"
 OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY", "")
@@ -58,6 +72,14 @@ _HTTP_TIMEOUT = 10.0
 # before falling back to OpenWeatherMap.
 _WEATHER_RETRIES = 2
 _WEATHER_RETRY_DELAY = 1.5
+_STORM_ICON_SUBSTRING = "thunder"  # Visual Crossing icon values: thunder, thunder-rain, thunder-showers-day/night
+# NOAA Gale Warning threshold (34kt): verified against Hurricane Ian's 2022-09-28
+# landfall data that the "thunder" icon alone never fires for wind-driven storms
+# (icon stayed "rain" all day despite 113 km/h gusts) — wind danger needs its own check.
+_STORM_WIND_GUST_KMH = 62.0
+# Standard meteorological heavy-rain threshold (~0.3 in/hr); Visual Crossing
+# has no discrete heavy-precip code like the other two providers.
+_HEAVY_PRECIP_MM_PER_HR = 7.6
 _STORM_WEATHER_CODES = {95, 96, 99}  # Open-Meteo WMO thunderstorm codes
 # WMO heavy-precipitation codes: heavy rain (65), heavy freezing rain (67),
 # heavy snow (75), violent rain showers (82), heavy snow showers (86)
@@ -102,12 +124,17 @@ class ForecastData:
 async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> ForecastData:
     async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
         try:
-            weather = await _fetch_open_meteo(client, lat, lon)
-            build = _build_from_open_meteo
+            weather = await _fetch_visual_crossing(client, lat, lon)
+            build = _build_from_visual_crossing
         except WeatherProviderError as e:
-            logger.warning("Open-Meteo unavailable, falling back to OpenWeatherMap: %s", e)
-            weather = await _fetch_openweathermap(client, lat, lon)
-            build = _build_from_openweathermap
+            logger.warning("Visual Crossing unavailable, falling back to Open-Meteo: %s", e)
+            try:
+                weather = await _fetch_open_meteo(client, lat, lon)
+                build = _build_from_open_meteo
+            except WeatherProviderError as e:
+                logger.warning("Open-Meteo unavailable, falling back to OpenWeatherMap: %s", e)
+                weather = await _fetch_openweathermap(client, lat, lon)
+                build = _build_from_openweathermap
 
         # Tides are optional enrichment: any failure means None water fields,
         # which the engine scores as a neutral default.
@@ -120,7 +147,113 @@ async def fetch_hourly_conditions(lat: float, lon: float, hours: int) -> Forecas
 
 
 # --------------------------------------------------------------------------- #
-# Open-Meteo (weather — primary)
+# Visual Crossing (weather — primary)
+# --------------------------------------------------------------------------- #
+
+async def _fetch_visual_crossing(client: httpx.AsyncClient, lat: float, lon: float) -> dict:
+    if not VISUALCROSSING_API_KEY:
+        raise WeatherProviderError("VISUALCROSSING_API_KEY is not set")
+
+    url = f"{VISUAL_CROSSING_URL}/{lat},{lon}"
+    params = {
+        "unitGroup": "metric",
+        "include": "hours,current",
+        "key": VISUALCROSSING_API_KEY,
+        "contentType": "json",
+    }
+    last_error: httpx.HTTPError | None = None
+    for attempt in range(_WEATHER_RETRIES + 1):
+        try:
+            resp = await client.get(url, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+            break
+        except httpx.HTTPError as e:
+            last_error = e
+            logger.warning("Visual Crossing request failed (attempt %d/%d): %s",
+                            attempt + 1, _WEATHER_RETRIES + 1, e)
+            if attempt < _WEATHER_RETRIES:
+                await asyncio.sleep(_WEATHER_RETRY_DELAY * (attempt + 1))
+    else:
+        raise WeatherProviderError(f"Visual Crossing request failed: {last_error}") from last_error
+
+    if "days" not in data:
+        raise WeatherProviderError(f"Visual Crossing response missing days data: {data}")
+    return data
+
+
+def _build_from_visual_crossing(
+    weather: dict, lat: float, lon: float, hours: int, tide_rates: dict[datetime, float],
+) -> ForecastData:
+    utc_offset = timedelta(hours=weather["tzoffset"])
+    days = weather["days"]
+
+    sun_times = [
+        SunTimes(
+            date=d["datetime"],
+            sunrise=datetime.utcfromtimestamp(d["sunriseEpoch"]) + utc_offset,
+            sunset=datetime.utcfromtimestamp(d["sunsetEpoch"]) + utc_offset,
+        )
+        for d in days
+    ]
+    sun_by_date = {s.date: (s.sunrise.time(), s.sunset.time()) for s in sun_times}
+
+    hourly = [h for d in days for h in d["hours"]]
+    pressures = [h["pressure"] for h in hourly]
+
+    conditions: list[HourlyConditions] = []
+    for i, h in enumerate(hourly):
+        if len(conditions) >= hours:
+            break
+
+        ts_utc = datetime.utcfromtimestamp(h["datetimeEpoch"])
+        ts = ts_utc + utc_offset  # local naive
+        icon = h.get("icon", "")
+        precip = h.get("precip") or 0.0
+        windgust = h.get("windgust") or 0.0
+        moon = _moon_metrics(lat, lon, ts_utc)
+        sunrise, sunset = sun_by_date.get(ts.date().isoformat(), (None, None))
+
+        conditions.append(HourlyConditions(
+            timestamp=ts,
+            air_temp_c=h["temp"],
+            feels_like_c=h["feelslike"],
+            pressure_hpa=h["pressure"],
+            pressure_delta_3h=pressures[i] - pressures[i - 3] if i >= 3 else 0.0,
+            pressure_delta_24h=pressures[i] - pressures[i - 24] if i >= 24 else 0.0,
+            wind_speed_kmh=h["windspeed"],  # metric unit group is already km/h
+            cloud_cover_pct=h["cloudcover"],
+            precip_mm=precip,
+            precip_probability_pct=h.get("precipprob", 0.0),
+            is_storm=_STORM_ICON_SUBSTRING in icon or windgust >= _STORM_WIND_GUST_KMH,
+            is_heavy_precip=precip >= _HEAVY_PRECIP_MM_PER_HR,
+            moon_phase=moon["phase"],
+            minutes_from_moon_major=moon["minutes_from_major"],
+            minutes_from_moon_minor=moon["minutes_from_minor"],
+            tide_rate_m_per_hr=tide_rates.get(ts_utc.replace(minute=0)),
+            lake_level_trend_cm_per_day=None,  # no lake-level feed yet
+            sunrise=sunrise,
+            sunset=sunset,
+        ))
+
+    current = None
+    cur = weather.get("currentConditions")
+    if cur:
+        icon = cur.get("icon", "")
+        precip = cur.get("precip") or 0.0
+        windgust = cur.get("windgust") or 0.0
+        current = CurrentConditions(
+            time=datetime.utcfromtimestamp(cur["datetimeEpoch"]) + utc_offset,
+            precipitation_mm=precip,
+            is_storm=_STORM_ICON_SUBSTRING in icon or windgust >= _STORM_WIND_GUST_KMH,
+            is_heavy_precip=precip >= _HEAVY_PRECIP_MM_PER_HR,
+        )
+
+    return ForecastData(conditions=conditions, sun_times=sun_times, current=current)
+
+
+# --------------------------------------------------------------------------- #
+# Open-Meteo (weather — fallback)
 # --------------------------------------------------------------------------- #
 
 async def _fetch_open_meteo(client: httpx.AsyncClient, lat: float, lon: float) -> dict:

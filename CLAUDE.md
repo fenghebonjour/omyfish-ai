@@ -27,12 +27,13 @@ preserve this invariant; add a test for it if you touch `compute_bite_score`.
 ## Out of scope until further notice
 - No ML/sklearn dependency for scoring — `calibration.py` is a documented roadmap, not something
   to implement yet. It requires real catch-log data from a closed beta first.
-- Providers are chosen and wired: Open-Meteo (no key) is the primary weather source again as of
-  2026-08-27, restored after 0a555ef had switched to OpenWeatherMap-only because Open-Meteo kept
-  throttling HF Spaces' shared outbound IP. OpenWeatherMap One Call 3.0 (`OPENWEATHERMAP_API_KEY`,
-  set as an HF Space secret in prod) is now a fallback used only if Open-Meteo fails, not the
-  default. Tides are NOAA CO-OPS, solunar is local `ephem`. `/bite-score/forecast`'s horizon is
-  168h/14 days by default (`hours` query param, max 336) when Open-Meteo serves the request; a
-  forecast served by the OpenWeatherMap fallback is capped at ~48h instead (its free hourly data
-  doesn't reach further), so callers may get fewer hours back than requested during a fallback.
-  Don't swap a provider or change the horizon cap unilaterally — ask first.
+- Providers are chosen and wired: Visual Crossing (`VISUALCROSSING_API_KEY`) is the primary
+  weather source as of 2026-08-27 — its free tier counts a full 15-day hourly forecast as a
+  single "record" against the 1,000/day quota. Falls back to Open-Meteo (no key) if Visual
+  Crossing fails, then to OpenWeatherMap One Call 3.0 (`OPENWEATHERMAP_API_KEY`) if Open-Meteo
+  also fails; all three are HF Space secrets in prod except Open-Meteo. Tides are NOAA CO-OPS,
+  solunar is local `ephem`. `/bite-score/forecast`'s horizon is 168h/14 days by default (`hours`
+  query param, max 336) when Visual Crossing or Open-Meteo serves the request; a forecast served
+  by the OpenWeatherMap fallback is capped at ~48h instead (its free hourly data doesn't reach
+  further), so callers may get fewer hours back than requested during that fallback. Don't swap a
+  provider or change the horizon cap unilaterally — ask first.
