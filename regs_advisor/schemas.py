@@ -7,7 +7,7 @@ bite_prediction convention (see bite_prediction/schemas.py).
 
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SpeciesLimitOut(BaseModel):
@@ -29,7 +29,10 @@ class LimitsResponse(BaseModel):
 
 
 class AskRequest(BaseModel):
-    question: str
+    # MAX_TOKENS in llm_client.py caps only the LLM's *output* — without a cap here, an
+    # unrate-limited caller could already send an arbitrarily large (and therefore
+    # arbitrarily expensive) prompt (BACKLOG.md item G, WEAKNESS_AUDIT.md §1.2).
+    question: str = Field(..., max_length=2000)
 
 
 class AskResponse(BaseModel):

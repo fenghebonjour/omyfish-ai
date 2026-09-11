@@ -5,7 +5,7 @@ I/O only. All scoring logic lives in engine/; all provider-fetching
 lives in providers/. This file just glues HTTP <-> engine <-> provider.
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from bite_prediction.engine import (
     PROFILES, best_windows, compute_bite_score, peak_windows, resolve_species_key,
@@ -15,8 +15,14 @@ from bite_prediction.schemas import (
     CurrentConditionsOut, ForecastResponse, HourlyScoreOut, SpeciesKeyResponse,
     SunTimesOut, TimeWindowOut,
 )
+from rate_limit import RateLimiter
 
 router = APIRouter(prefix="/bite-score", tags=["bite-score"])
+
+# Per-IP fixed-window rate limiting — this service has no gateway in front of it for
+# two of its consumers (BACKLOG.md item G, WEAKNESS_AUDIT.md §1.2). /today calls
+# get_forecast() directly in-process, so one limiter instance covers both.
+_forecast_limiter = RateLimiter(limit=30, window_seconds=60)
 
 
 def _to_out(r) -> HourlyScoreOut:
@@ -28,12 +34,12 @@ def _to_out(r) -> HourlyScoreOut:
     )
 
 
-@router.get("/forecast", response_model=ForecastResponse)
+@router.get("/forecast", response_model=ForecastResponse, dependencies=[Depends(_forecast_limiter)])
 async def get_forecast(
     lat: float,
     lon: float,
     species: str = Query("general", description="Key from bite_prediction.engine.PROFILES, or a resolvable species name"),
-    hours: int = Query(168, le=336, description="Forecast horizon from start of today (local), max 14 days (shorter if the OpenWeatherMap fallback is serving the request)"),
+    hours: int = Query(168, le=336, description="Forecast horizon from start of today (local), max 14 days"),
 ):
     species_key = resolve_species_key(species)
     if species_key is None:
@@ -62,7 +68,7 @@ async def get_forecast(
     )
 
 
-@router.get("/today", response_model=ForecastResponse)
+@router.get("/today", response_model=ForecastResponse, dependencies=[Depends(_forecast_limiter)])
 async def get_today(lat: float, lon: float, species: str = "general"):
     """Convenience wrapper the mobile client hits on the home screen."""
     return await get_forecast(lat=lat, lon=lon, species=species, hours=24)

@@ -6,8 +6,9 @@ engine/; external fetches live in providers/. This file glues
 HTTP <-> providers <-> engine, same shape as bite_prediction/router.py.
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
+from rate_limit import RateLimiter
 from regs_advisor.engine.consumption import build_advisory, haversine_km
 from regs_advisor.engine.limits import find_species_limit
 from regs_advisor.engine.question_parsing import extract_species, extract_zone
@@ -26,6 +27,11 @@ from regs_advisor.schemas import (
 )
 
 router = APIRouter(prefix="/regs", tags=["regs-advisor"])
+
+# Per-IP fixed-window rate limiting — /ask is the only endpoint in the whole family
+# that calls a paid, per-token-billed LLM API, and this service has no gateway in
+# front of it for two of its consumers (BACKLOG.md item G, WEAKNESS_AUDIT.md §1.2).
+_ask_limiter = RateLimiter(limit=10, window_seconds=60)
 
 # How many of the nearest sampling stations to try before giving up on
 # finding this species — most species aren't sampled at every station.
@@ -164,7 +170,7 @@ async def _live_limits_context(question: str) -> tuple[str, str] | None:
     return "Live official regulations lookup:\n" + "\n".join(lines), f"{zone_name} official limits (live lookup)"
 
 
-@router.post("/ask", response_model=AskResponse)
+@router.post("/ask", response_model=AskResponse, dependencies=[Depends(_ask_limiter)])
 async def ask(request: AskRequest):
     chunks = get_index().top_k(request.question, k=4)
     context_texts = [c.text for c, _ in chunks]

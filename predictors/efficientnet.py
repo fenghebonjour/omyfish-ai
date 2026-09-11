@@ -62,7 +62,12 @@ class FishPredictor:
                  device: Optional[str] = None):
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
 
-        ckpt = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
+        # weights_only=False uses full pickle deserialization, capable of arbitrary code
+        # execution if the checkpoint were ever untrusted — True restricts loading to a safe
+        # allowlist (tensors, dicts/lists/scalars, which is everything this checkpoint format
+        # actually uses; verified against a real checkpoint) (BACKLOG.md item G,
+        # WEAKNESS_AUDIT.md, "Model/checkpoint loading" finding).
+        ckpt = torch.load(checkpoint_path, map_location=self.device, weights_only=True)
         config = ckpt["config"]
 
         if classes_path is None:

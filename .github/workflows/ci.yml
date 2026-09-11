@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # Weekly run on main — catches dependency drift even when no code changes.
+    - cron: "0 6 * * 1"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libglib2.0-0 libsm6 libxext6 libxrender-dev
+
+      # CPU-only torch first — the default PyPI wheels bundle the full CUDA
+      # stack, which is unnecessary weight for a test-only CI install (same
+      # reasoning as the Dockerfile's own torch install step).
+      - name: Install dependencies
+        run: |
+          pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu \
+            "torch>=2.1.0" "torchvision>=0.16.0"
+          pip install --no-cache-dir -r requirements.txt
+          pip install --no-cache-dir pytest
+
+      - name: Test
+        run: pytest -q

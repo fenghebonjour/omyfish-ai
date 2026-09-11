@@ -1,21 +1,40 @@
 import base64
 import json
+import logging
 import os
 from io import BytesIO
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from PIL import Image
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from bite_prediction.router import router as bite_prediction_router
+from rate_limit import RateLimiter
 from regs_advisor.router import router as regs_advisor_router
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="OMyFish AI Service", version="1.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.include_router(bite_prediction_router)
 app.include_router(regs_advisor_router)
+
+
+# Catches anything the routers' own try/except blocks don't already turn into a clean
+# HTTPException, so callers get structured JSON instead of Starlette's default error
+# response (BACKLOG.md item G, WEAKNESS_AUDIT.md §2.2).
+@app.exception_handler(Exception)
+async def handle_unexpected(request: Request, exc: Exception):
+    logger.exception("Unhandled exception on %s", request.url.path)
+    return JSONResponse(status_code=500, content={"error": "An unexpected error occurred."})
+
+
+# Per-IP fixed-window rate limiting — see rate_limit.py for why this exists here
+# specifically (no gateway in front of this service for two of its consumers).
+_predict_limiter = RateLimiter(limit=10, window_seconds=60)
 
 MODEL_PATH = os.getenv("MODEL_PATH", "/checkpoints/best.pt")
 CLASSES_PATH = os.getenv("CLASSES_PATH", "/checkpoints/classes.json")
@@ -61,7 +80,11 @@ async def startup():
 
 
 class PredictRequest(BaseModel):
-    image_base64: str
+    # Cap ~11MB decoded (base64 inflates ~4/3) — an unbounded payload was an
+    # uncapped-memory/CPU vector on top of being uncapped-cost, on the one
+    # unrate-limited-by-any-gateway endpoint in the family
+    # (BACKLOG.md item G, WEAKNESS_AUDIT.md §1.2).
+    image_base64: str = Field(..., max_length=15_000_000)
     top_k: int = 5
 
 
@@ -84,7 +107,7 @@ class PredictResponse(BaseModel):
     is_fish: bool = True
 
 
-@app.post("/predict", response_model=PredictResponse)
+@app.post("/predict", response_model=PredictResponse, dependencies=[Depends(_predict_limiter)])
 async def predict(request: PredictRequest):
     if _gate is None and not _fish_id_disabled:
         raise HTTPException(

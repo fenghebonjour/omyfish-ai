@@ -34,7 +34,12 @@ class LLMError(RuntimeError):
 
 
 def _client() -> groq.Groq:
-    return groq.Groq()
+    # The only outbound call in this service with no explicit timeout/retry — a slow Groq
+    # response could hang the request indefinitely otherwise. max_retries uses the SDK's
+    # own exponential backoff, matching the intent (if not the exact mechanism) of
+    # weather_client.py's retry loop elsewhere in this repo
+    # (BACKLOG.md item G, WEAKNESS_AUDIT.md §2.1).
+    return groq.Groq(timeout=15.0, max_retries=2)
 
 
 def ask(question: str, context_chunks: list[str]) -> str:
