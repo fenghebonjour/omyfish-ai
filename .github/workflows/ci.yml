@@ -26,13 +26,16 @@ jobs:
 
       # CPU-only torch first — the default PyPI wheels bundle the full CUDA
       # stack, which is unnecessary weight for a test-only CI install (same
-      # reasoning as the Dockerfile's own torch install step).
+      # reasoning as the Dockerfile's own torch install step). No --no-cache-dir
+      # here (unlike the Dockerfile) — that flag stops pip from ever populating
+      # ~/.cache/pip, which made setup-python's cache: "pip" step above fail
+      # with "Cache folder path ... doesn't exist on disk" on every run.
       - name: Install dependencies
         run: |
-          pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu \
+          pip install --index-url https://download.pytorch.org/whl/cpu \
             "torch>=2.1.0" "torchvision>=0.16.0"
-          pip install --no-cache-dir -r requirements.txt
-          pip install --no-cache-dir pytest
+          pip install -r requirements.txt
+          pip install pytest
 
       - name: Test
         run: pytest -q
