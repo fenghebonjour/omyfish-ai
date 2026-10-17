@@ -59,6 +59,30 @@ free-fishing days per year). Non-residents pay a different fee than Quebec
 residents. This app does not sell or verify licences — see quebec.ca for
 current pricing and where to buy one.
 
+## Bait rules
+
+Bait fish are defined broadly: "any fish, molluscs, crustaceans (e.g., shrimp,
+crayfish), marine animals" "which are intended for use as fishing bait" —
+this includes minnows and shiners, since they are fish. **Since April 1, 2017,
+the use and possession of live bait fish, regardless of species, is prohibited
+throughout Québec, including during winter fishing periods.** Importing live
+or dead bait fish is also prohibited.
+
+"Earthworms, leeches, insects and frogs are not considered to be bait fish,"
+so their use as bait is permitted unless otherwise indicated — this covers
+the leech- and worm-based live-bait rigs mentioned elsewhere in this app's
+tackle notes; a live minnow or other live baitfish does not fall under that
+exception.
+
+Dead bait fish from certain Québec freshwater species are allowed only in
+certain waters during winter fishing periods; several species (including
+trout, walleye, pike, muskellunge, perch, sturgeon, salmon, and char) may
+never be used as dead bait anywhere. Check the zone-specific rules for your
+waterbody before using any dead bait fish.
+
+Source: quebec.ca, "Use of bait" (page last updated 2026-01-16):
+https://www.quebec.ca/en/tourism-recreation-sport/sporting-and-outdoor-activities/sport-fishing/fishing-techniques/use-baits
+
 ## Where the numbers in this app come from
 
 Catch limits and zone lookups are pulled live from the official MFFP

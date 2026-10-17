@@ -28,6 +28,23 @@ SYSTEM_PROMPT = (
     "touches a legal limit, season, or consumption advisory."
 )
 
+# REGS_FIX_GUARDRAIL: a species/tackle description that merely mentions an item (e.g. a
+# "live-bait rig") is not a rule permitting or banning it. Off by default -- see
+# eval/results/diagnosis_live_bait.md for the failure this addresses.
+GUARDRAIL_ADDENDUM = (
+    " A passage that merely describes a technique or mentions an item (e.g. a species "
+    "entry saying anglers use a \"live-bait rig\") is NOT a rule stating that item is "
+    "legal or illegal. For a yes/no legality question, only answer yes or no if the "
+    "context contains an explicit rule statement covering it; otherwise say the answer "
+    "is not confirmed in your sources and point to quebec.ca."
+)
+
+
+def _system_prompt() -> str:
+    if os.getenv("REGS_FIX_GUARDRAIL"):
+        return SYSTEM_PROMPT + GUARDRAIL_ADDENDUM
+    return SYSTEM_PROMPT
+
 
 class LLMError(RuntimeError):
     """Raised when the Groq API call fails or is refused."""
@@ -54,7 +71,7 @@ def ask(question: str, context_chunks: list[str]) -> str:
             model=MODEL,
             max_tokens=MAX_TOKENS,
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": _system_prompt()},
                 {"role": "user", "content": user_message},
             ],
         )

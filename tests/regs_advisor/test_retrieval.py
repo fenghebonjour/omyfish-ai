@@ -28,3 +28,20 @@ def test_unrelated_query_returns_low_or_no_matches():
     idx = get_index()
     results = idx.top_k("xyzzy quantum blockchain nonsense", k=3)
     assert results == []
+
+
+def test_live_bait_query_ranks_bait_rules_section_first():
+    """Regression for the 'live bait allowed in quebec?' failure (see
+    eval/results/diagnosis_live_bait.md): the province-wide ban must be the
+    top-ranked chunk at the k=4 the router actually requests, not buried
+    behind species-tackle chunks that merely mention bait as a technique."""
+    idx = get_index()
+    for query in [
+        "live bait allowed in quebec?",
+        "can I use minnows as bait?",
+        "are shiners allowed as bait in Quebec?",
+        "is bait fish legal?",
+    ]:
+        results = idx.top_k(query, k=4)
+        assert results
+        assert results[0][0].heading == "Bait rules", query

@@ -6,11 +6,15 @@ engine/; external fetches live in providers/. This file glues
 HTTP <-> providers <-> engine, same shape as bite_prediction/router.py.
 """
 
+import os
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from rate_limit import RateLimiter
+from regs_advisor.engine.agentic import ask_agentic
 from regs_advisor.engine.consumption import build_advisory, haversine_km
 from regs_advisor.engine.limits import find_species_limit
+from regs_advisor.engine.pinned_rules import load_core_rules_block
 from regs_advisor.engine.question_parsing import extract_species, extract_zone
 from regs_advisor.engine.retrieval import get_index
 from regs_advisor.engine.zones import resolve_zone_id
@@ -172,6 +176,16 @@ async def _live_limits_context(question: str) -> tuple[str, str] | None:
 
 @router.post("/ask", response_model=AskResponse, dependencies=[Depends(_ask_limiter)])
 async def ask(request: AskRequest):
+    # Read fresh on every call (not a module-level constant) so a caller/test
+    # can switch modes within one process. Default (unset or anything other
+    # than "agentic") is the original single-hop path below, untouched.
+    if os.getenv("REGS_MODE") == "agentic":
+        result = ask_agentic(request.question)
+        return AskResponse(
+            question=request.question, answer=result.answer, sources=result.sources,
+            mode="agentic", tool_call_count=result.tool_call_count, queries=result.queries,
+        )
+
     chunks = get_index().top_k(request.question, k=4)
     context_texts = [c.text for c, _ in chunks]
     sources = [c.heading for c, _ in chunks]
@@ -181,6 +195,12 @@ async def ask(request: AskRequest):
         text, source = live_context
         context_texts.insert(0, text)
         sources.insert(0, source)
+
+    # REGS_FIX_PINNED: always include the core must-know province-wide rules,
+    # regardless of what the TF-IDF retriever ranked for this question.
+    if os.getenv("REGS_FIX_PINNED"):
+        context_texts.insert(0, load_core_rules_block())
+        sources.insert(0, "Core rules (pinned)")
 
     if not context_texts:
         raise HTTPException(404, "No reference material matches this question")

@@ -1,0 +1,857 @@
+{
+  "description": "Hand-built eval set for the Regs & Tips RAG chatbot (regs_advisor/, POST /regs/ask). Ground truth is verified against regs_advisor/knowledge_base/*.md only. Questions involving a species + 'Zone <digit>' are phrased to avoid triggering the router's separate live-government-data path (engine/question_parsing.py extract_zone/extract_species) so correctness grading stays tied to the static KB rather than today's live numbers from peche.faune.gouv.qc.ca. See eval/run_eval.py and the baseline report for details.",
+  "items": [
+    {
+      "id": "S1",
+      "tier": "basic",
+      "category": "single_fact",
+      "question": "What length range does the walleye tackle notes give as an example slot limit, and which zone number is used in that example?",
+      "expected_facts": [
+        "37",
+        "53",
+        "27"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Walleye (doré jaune)"
+        }
+      ],
+      "source_ref": "regs_advisor/knowledge_base/species_tackle.md:9-20 (Walleye (doré jaune))",
+      "out_of_scope": false,
+      "notes": "Only genuine zone-tied numeric fact in the KB. No literal 'zone <digit>' token in the question text, so the live /regs/limits path (engine/question_parsing.py) can't trigger."
+    },
+    {
+      "id": "S2",
+      "tier": "basic",
+      "category": "single_fact",
+      "question": "According to the regulations overview, at what age does someone need their own Quebec fishing licence?",
+      "expected_facts": [
+        "12"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Licensing"
+        }
+      ],
+      "source_ref": "regs_advisor/knowledge_base/regulations_overview.md:54-61 (Licensing)",
+      "out_of_scope": false,
+      "notes": ""
+    },
+    {
+      "id": "S3",
+      "tier": "basic",
+      "category": "single_fact",
+      "question": "According to the overview, what's the full numeric range of fishing zones Quebec is divided into?",
+      "expected_facts": [
+        "1",
+        "29"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Fishing zones"
+        }
+      ],
+      "source_ref": "regs_advisor/knowledge_base/regulations_overview.md:10-18 (Fishing zones)",
+      "out_of_scope": false,
+      "notes": ""
+    },
+    {
+      "id": "S4",
+      "tier": "basic",
+      "category": "single_fact",
+      "question": "What example daily catch limit does the regulations overview give for walleye and sauger combined?",
+      "expected_facts": [
+        "6 in all"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "What a \"limit\" usually includes"
+        }
+      ],
+      "source_ref": "regs_advisor/knowledge_base/regulations_overview.md:19-34 (What a \"limit\" usually includes)",
+      "out_of_scope": false,
+      "notes": "This number is presented in the KB as an illustrative example, not a universal rule for every zone -- the question is phrased to ask for the example itself, which IS a verifiable fact."
+    },
+    {
+      "id": "S5",
+      "tier": "basic",
+      "category": "single_fact",
+      "question": "Per the tackle notes, how many lake sturgeon can an angler typically keep under most Quebec zones' possession limit?",
+      "expected_facts": [
+        "one"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Lake sturgeon (esturgeon jaune)"
+        }
+      ],
+      "source_ref": "regs_advisor/knowledge_base/species_tackle.md:82-91 (Lake sturgeon (esturgeon jaune))",
+      "out_of_scope": false,
+      "notes": ""
+    },
+    {
+      "id": "S6",
+      "tier": "basic",
+      "category": "single_fact",
+      "question": "What is the name of the dataset the consumption-advisory numbers in this app come from?",
+      "expected_facts": [
+        "Guide de consommation du poisson de pêche sportive en eau douce"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Where the numbers in this app come from"
+        }
+      ],
+      "source_ref": "regs_advisor/knowledge_base/regulations_overview.md:62-71 (Where the numbers in this app come from)",
+      "out_of_scope": false,
+      "notes": ""
+    },
+    {
+      "id": "C1",
+      "tier": "basic",
+      "category": "conversational",
+      "question": "My buddy mentioned there's an example in the app about keeping walleye only within a certain size window -- what's that size range?",
+      "expected_facts": [
+        "37",
+        "53"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Walleye (doré jaune)"
+        }
+      ],
+      "source_ref": "regs_advisor/knowledge_base/species_tackle.md:9-20 (Walleye (doré jaune))",
+      "out_of_scope": false,
+      "notes": ""
+    },
+    {
+      "id": "C2",
+      "tier": "basic",
+      "category": "conversational",
+      "question": "Does my 11-year-old need their own fishing licence to fish with me in Quebec?",
+      "expected_facts": [
+        "12"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Licensing"
+        }
+      ],
+      "source_ref": "regs_advisor/knowledge_base/regulations_overview.md:54-61 (Licensing)",
+      "out_of_scope": false,
+      "notes": ""
+    },
+    {
+      "id": "C3",
+      "tier": "basic",
+      "category": "conversational",
+      "question": "I landed a huge sturgeon in Quebec -- how many of those am I typically allowed to bring home?",
+      "expected_facts": [
+        "one"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Lake sturgeon (esturgeon jaune)"
+        }
+      ],
+      "source_ref": "regs_advisor/knowledge_base/species_tackle.md:82-91 (Lake sturgeon (esturgeon jaune))",
+      "out_of_scope": false,
+      "notes": ""
+    },
+    {
+      "id": "C4",
+      "tier": "basic",
+      "category": "conversational",
+      "question": "Someone told me muskie have a really strict gear rule -- is that actually true?",
+      "expected_facts": [
+        "angling-only"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Muskellunge (maskinongé)"
+        }
+      ],
+      "source_ref": "regs_advisor/knowledge_base/species_tackle.md:31-41 (Muskellunge (maskinongé))",
+      "out_of_scope": false,
+      "notes": "'muskie' is in the router's species-keyword alias list, but there's no zone digit in the question, so the live-limits path still can't trigger."
+    },
+    {
+      "id": "T1",
+      "tier": "basic",
+      "category": "two_hop",
+      "question": "What's the example length range for walleye in the tackle notes, and separately, how many lake sturgeon can I typically keep per those same notes?",
+      "expected_facts": [
+        "37",
+        "53",
+        "one"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Walleye (doré jaune)"
+        },
+        {
+          "file": "species_tackle.md",
+          "heading": "Lake sturgeon (esturgeon jaune)"
+        }
+      ],
+      "source_ref": "species_tackle.md:9-20 (Walleye); species_tackle.md:82-91 (Lake sturgeon)",
+      "out_of_scope": false,
+      "notes": ""
+    },
+    {
+      "id": "T2",
+      "tier": "basic",
+      "category": "two_hop",
+      "question": "Are both muskellunge and lake sturgeon restricted to angling-only gear in the tackle notes?",
+      "expected_facts": [
+        "muskellunge",
+        "lake sturgeon",
+        "angling-only"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Muskellunge (maskinongé)"
+        },
+        {
+          "file": "species_tackle.md",
+          "heading": "Lake sturgeon (esturgeon jaune)"
+        }
+      ],
+      "source_ref": "species_tackle.md:31-41 (Muskellunge); species_tackle.md:82-91 (Lake sturgeon)",
+      "out_of_scope": false,
+      "notes": ""
+    },
+    {
+      "id": "T3",
+      "tier": "basic",
+      "category": "two_hop",
+      "question": "Do I need a licence at age 10, and is a consumption advisory the same thing as a legal catch limit?",
+      "expected_facts": [
+        "12",
+        "separate"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Licensing"
+        },
+        {
+          "file": "regulations_overview.md",
+          "heading": "Consumption advisories are a different question"
+        }
+      ],
+      "source_ref": "regulations_overview.md:54-61 (Licensing); regulations_overview.md:43-53 (Consumption advisories are a different question)",
+      "out_of_scope": false,
+      "notes": ""
+    },
+    {
+      "id": "T4",
+      "tier": "basic",
+      "category": "two_hop",
+      "question": "What's the walleye example length range in the tackle notes, and when do largemouth and smallmouth bass typically spawn?",
+      "expected_facts": [
+        "37",
+        "53",
+        "may",
+        "june"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Walleye (doré jaune)"
+        },
+        {
+          "file": "species_tackle.md",
+          "heading": "Largemouth bass (achigan à grande bouche) & smallmouth bass (achigan à petite bouche)"
+        }
+      ],
+      "source_ref": "species_tackle.md:9-20 (Walleye); species_tackle.md:42-52 (Largemouth/smallmouth bass)",
+      "out_of_scope": false,
+      "notes": ""
+    },
+    {
+      "id": "E1",
+      "tier": "basic",
+      "category": "exact_term",
+      "question": "What length range applies as an example slot limit for doré jaune in Zone 27?",
+      "expected_facts": [
+        "37",
+        "53"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Walleye (doré jaune)"
+        }
+      ],
+      "source_ref": "regs_advisor/knowledge_base/species_tackle.md:9-20 (Walleye (doré jaune))",
+      "out_of_scope": false,
+      "notes": "Uses the French name 'doré jaune', which only appears in the KB heading, instead of 'walleye'. 'doré jaune' is NOT in the router's English species-keyword list, so even with 'Zone 27' present the live-limits path doesn't trigger (species extraction returns None) -- answered purely from the static KB."
+    },
+    {
+      "id": "E2",
+      "tier": "basic",
+      "category": "exact_term",
+      "question": "Is northern pike restricted to angling-only gear with a low daily limit, or does that apply to a different toothy predator?",
+      "expected_facts": [
+        "muskellunge"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Muskellunge (maskinongé)"
+        }
+      ],
+      "source_ref": "regs_advisor/knowledge_base/species_tackle.md:31-41 (Muskellunge (maskinongé))",
+      "out_of_scope": false,
+      "notes": "Tests exact species attribution: the low-limit/angling-only note belongs to muskellunge, not northern pike. A correct answer must name muskellunge."
+    },
+    {
+      "id": "O1",
+      "tier": "basic",
+      "category": "out_of_scope",
+      "question": "What is the current price of a non-resident annual fishing licence in Quebec?",
+      "expected_facts": [],
+      "source_chunks": [],
+      "source_ref": "N/A -- regulations_overview.md:54-61 explicitly says pricing isn't covered ('see quebec.ca for current pricing')",
+      "out_of_scope": true,
+      "notes": "Correct behavior is to decline / point to quebec.ca rather than invent a price."
+    },
+    {
+      "id": "O2",
+      "tier": "basic",
+      "category": "out_of_scope",
+      "question": "How many sport-fishing licences were sold in Quebec last year?",
+      "expected_facts": [],
+      "source_chunks": [],
+      "source_ref": "N/A -- not covered anywhere in the knowledge base",
+      "out_of_scope": true,
+      "notes": "Unrelated statistic, not present in either KB file."
+    },
+    {
+      "id": "H1",
+      "tier": "hard",
+      "category": "compound",
+      "vocab_gap": true,
+      "question": "If I hook a big lake trout in summer, how deep should I be fishing, and can I keep more than one lake sturgeon the same day?",
+      "expected_facts": [
+        "15",
+        "30",
+        "one"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Lake trout (touladi) & brook trout (omble de fontaine)"
+        },
+        {
+          "file": "species_tackle.md",
+          "heading": "Lake sturgeon (esturgeon jaune)"
+        }
+      ],
+      "source_ref": "species_tackle.md:53-64 (Lake trout & brook trout, '15–30 m down along thermoclines'); species_tackle.md:82-91 (Lake sturgeon, 'often just one')",
+      "out_of_scope": false,
+      "notes": "Compound: depth fact and sturgeon limit come from two different chunks."
+    },
+    {
+      "id": "H2",
+      "tier": "hard",
+      "category": "compound",
+      "vocab_gap": true,
+      "question": "Does my 9-year-old need a fishing license, and is there a size range I'd have to release a walleye within?",
+      "expected_facts": [
+        "12",
+        "37",
+        "53"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Licensing"
+        },
+        {
+          "file": "species_tackle.md",
+          "heading": "Walleye (doré jaune)"
+        }
+      ],
+      "source_ref": "regulations_overview.md:54-61 (Licensing, 'anyone 12 and older'); species_tackle.md:9-20 (Walleye, Zone 27's 37-53 cm slot example)",
+      "out_of_scope": false,
+      "notes": "Compound: licensing-age fact and walleye slot example come from two different files."
+    },
+    {
+      "id": "H3",
+      "tier": "hard",
+      "category": "compound",
+      "vocab_gap": true,
+      "question": "What lures should I throw for muskie, and are rainbow trout easier to catch right when the ice goes out?",
+      "expected_facts": [
+        "bucktails",
+        "ice-out"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Muskellunge (maskinongé)"
+        },
+        {
+          "file": "species_tackle.md",
+          "heading": "Rainbow trout (truite arc-en-ciel)"
+        }
+      ],
+      "source_ref": "species_tackle.md:31-41 (Muskellunge, 'Large bucktails, glide baits, and jerkbaits'); species_tackle.md:74-81 (Rainbow trout, 'just after ice-out when they're shallow and aggressive')",
+      "out_of_scope": false,
+      "notes": "Compound: muskie-lure fact and rainbow-trout-timing fact come from two different chunks."
+    },
+    {
+      "id": "H4",
+      "tier": "hard",
+      "category": "compound",
+      "vocab_gap": false,
+      "question": "Is sturgeon fishing just worms on the bottom, and do largemouth bass spawn around the same time as smallmouth?",
+      "expected_facts": [
+        "worms",
+        "may",
+        "june"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Lake sturgeon (esturgeon jaune)"
+        },
+        {
+          "file": "species_tackle.md",
+          "heading": "Largemouth bass (achigan à grande bouche) & smallmouth bass (achigan à petite bouche)"
+        }
+      ],
+      "source_ref": "species_tackle.md:82-91 (Lake sturgeon, 'bait (worms, leeches, or cut bait)'); species_tackle.md:42-52 (bass, 'late spring (roughly May-June)')",
+      "out_of_scope": false,
+      "notes": "Compound: sturgeon bait fact and bass spawn-timing fact come from two different chunks."
+    },
+    {
+      "id": "H5",
+      "tier": "hard",
+      "category": "compound",
+      "vocab_gap": false,
+      "question": "Do I need to worry about handling lake trout gently in hot weather, and can perch be caught through the ice?",
+      "expected_facts": [
+        "heat",
+        "stress",
+        "ice"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Lake trout (touladi) & brook trout (omble de fontaine)"
+        },
+        {
+          "file": "species_tackle.md",
+          "heading": "Yellow perch (perchaude) & black crappie (marigane noire)"
+        }
+      ],
+      "source_ref": "species_tackle.md:53-64 (Lake trout & brook trout, 'sensitive to summer heat stress if played too long before release'); species_tackle.md:65-73 (Yellow perch & black crappie, 'stay active and feeding under the ice')",
+      "out_of_scope": false,
+      "notes": "Compound: lake-trout heat-stress fact and perch ice-fishing fact come from two different chunks."
+    },
+    {
+      "id": "CMP1",
+      "tier": "hard",
+      "category": "compare",
+      "vocab_gap": false,
+      "question": "Do largemouth and smallmouth bass like the same kind of cover and water, or are they pretty different?",
+      "expected_facts": [
+        "weed beds",
+        "rockier"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Largemouth bass (achigan à grande bouche) & smallmouth bass (achigan à petite bouche)"
+        }
+      ],
+      "source_ref": "species_tackle.md:42-52 (largemouth: 'weed beds, docks, fallen timber'; smallmouth: 'rockier, clearer water and current')",
+      "out_of_scope": false,
+      "notes": "Species comparison within a single combined-heading chunk."
+    },
+    {
+      "id": "CMP2",
+      "tier": "hard",
+      "category": "compare",
+      "vocab_gap": true,
+      "question": "Are walleye and northern pike active at the same times of day, or does one bite better at night?",
+      "expected_facts": [
+        "dawn",
+        "heat of the day"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Walleye (doré jaune)"
+        },
+        {
+          "file": "species_tackle.md",
+          "heading": "Northern pike (grand brochet)"
+        }
+      ],
+      "source_ref": "species_tackle.md:9-20 (Walleye, 'feed most actively at dawn, dusk, and after dark'); species_tackle.md:21-30 (Northern pike, 'catchable through the heat of the day, unlike walleye')",
+      "out_of_scope": false,
+      "notes": "Species comparison across two different chunks."
+    },
+    {
+      "id": "CMP3",
+      "tier": "hard",
+      "category": "compare",
+      "vocab_gap": true,
+      "question": "Are lake trout and brook trout both the kind of fish that get stressed out if you fight them too long on a hot day?",
+      "expected_facts": [
+        "cold-water",
+        "heat",
+        "stress"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Lake trout (touladi) & brook trout (omble de fontaine)"
+        }
+      ],
+      "source_ref": "species_tackle.md:53-64 ('Both species are cold-water specialists and are sensitive to summer heat stress if played too long before release')",
+      "out_of_scope": false,
+      "notes": "Species comparison within a single combined-heading chunk."
+    },
+    {
+      "id": "W1",
+      "tier": "hard",
+      "category": "premise_check",
+      "vocab_gap": false,
+      "match_mode": "any",
+      "question": "Since walleye and pike are basically the same fish, is the slot limit example the same for both?",
+      "expected_facts": [
+        "different species",
+        "different fish",
+        "not the same species",
+        "two different",
+        "walleye only",
+        "only walleye",
+        "specific to walleye",
+        "mention a slot limit",
+        "mention any slot limit",
+        "only for walleye"
+      ],
+      "source_chunks": [
+        {
+          "file": "species_tackle.md",
+          "heading": "Walleye (doré jaune)"
+        },
+        {
+          "file": "species_tackle.md",
+          "heading": "Northern pike (grand brochet)"
+        }
+      ],
+      "source_ref": "species_tackle.md:9-20 (Walleye, only species with the slot-limit example); species_tackle.md:21-30 (Northern pike, no slot limit mentioned)",
+      "out_of_scope": false,
+      "notes": "False premise: walleye and pike are different species in different KB sections, and only walleye's section has a slot-limit example. match_mode 'any' -- pass if the answer contains any one correction phrase, graded as a heuristic (see report)."
+    },
+    {
+      "id": "W2",
+      "tier": "hard",
+      "category": "premise_check",
+      "vocab_gap": true,
+      "match_mode": "any",
+      "question": "Quebec regulations say I can only fish with artificial lures, right? No live bait allowed anywhere?",
+      "expected_facts": [
+        "worms and leeches are allowed",
+        "worms are permitted",
+        "leeches are permitted",
+        "not limited to artificial lures",
+        "live bait like worms",
+        "worms or leeches is allowed",
+        "only live baitfish",
+        "minnows are banned"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Bait rules"
+        }
+      ],
+      "source_ref": "regulations_overview.md:62-85 ('Bait rules' -- live baitfish, e.g. minnows, banned province-wide since 2017-04-01; worms, leeches, insects, frogs are not baitfish and remain permitted)",
+      "out_of_scope": false,
+      "notes": "False premise, but in the opposite direction from this item's original version: it is NOT true that only artificial lures are allowed -- worms, leeches, insects, and frogs remain legal live bait. The actual ban covers only live baitfish (e.g. minnows), province-wide since 2017-04-01. This item previously assumed no province-wide ban existed at all and would have rewarded an answer saying live baitfish/minnows are permitted; corrected 2026-10-17 after regulations_overview.md's 'Bait rules' section and pinned_rules.json's bait rule were added from the official quebec.ca source (see eval/results/diagnosis_live_bait.md). match_mode 'any' -- pass if the answer contains any one correction phrase, graded as a heuristic (see report)."
+    },
+    {
+      "id": "V1",
+      "tier": "hard",
+      "category": "vague",
+      "vocab_gap": false,
+      "match_mode": "any",
+      "question": "What's the catch limit for my favorite fish?",
+      "expected_facts": [
+        "which species",
+        "per species",
+        "which fish",
+        "what species",
+        "that species",
+        "the species",
+        "which zone"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Fishing zones"
+        }
+      ],
+      "source_ref": "regulations_overview.md:10-18 ('set per zone, per species' -- no species named, so the correct answer should ask for or state the missing species)",
+      "out_of_scope": false,
+      "notes": "Vague: species missing entirely. match_mode 'any' -- heuristic, see report."
+    },
+    {
+      "id": "V2",
+      "tier": "hard",
+      "category": "vague",
+      "vocab_gap": true,
+      "match_mode": "any",
+      "question": "Can I keep a legal walleye around here?",
+      "expected_facts": [
+        "which zone",
+        "what zone",
+        "depends on the zone",
+        "zone you"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Fishing zones"
+        }
+      ],
+      "source_ref": "regulations_overview.md:10-18 ('you always need to know which zone you're fishing in' -- no zone named here, so the correct answer should ask for or state the missing zone)",
+      "out_of_scope": false,
+      "notes": "Vague: zone missing ('around here'). Species 'walleye' present but no zone digit, so the live-limits path still can't trigger. match_mode 'any' -- heuristic, see report."
+    },
+    {
+      "id": "RB1",
+      "tier": "regression",
+      "category": "legality",
+      "question": "live bait allowed in quebec?",
+      "expected_facts": [
+        "prohibited",
+        "live bait"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Bait rules"
+        }
+      ],
+      "source_ref": "regulations_overview.md:62-85 (Bait rules, 'Since April 1, 2017, the use and possession of live bait fish, regardless of species, is prohibited throughout Québec')",
+      "out_of_scope": false,
+      "notes": "Primary regression item for the live-bait diagnosis (see eval/results/diagnosis_live_bait.md). Original wording was answered 'Yes... commonly used and permitted' before the Bait rules KB section and Fix C/D were added."
+    },
+    {
+      "id": "RB2",
+      "tier": "regression",
+      "category": "legality",
+      "vocab_gap": true,
+      "match_mode": "any",
+      "question": "can I use minnows as bait?",
+      "expected_facts": [
+        "prohibited",
+        "prohibits",
+        "banned",
+        "bans",
+        "not allowed",
+        "illegal",
+        "not permitted"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Bait rules"
+        }
+      ],
+      "source_ref": "regulations_overview.md:62-85 (Bait rules, minnows are a bait fish per the broad 'any fish... intended for use as fishing bait' definition)",
+      "out_of_scope": false,
+      "notes": "Casual phrasing variant; match_mode 'any' since a correct answer may use any of these synonyms for the ban."
+    },
+    {
+      "id": "RB3",
+      "tier": "regression",
+      "category": "legality",
+      "vocab_gap": true,
+      "match_mode": "any",
+      "question": "are shiners allowed as bait in Quebec?",
+      "expected_facts": [
+        "prohibited",
+        "prohibits",
+        "banned",
+        "bans",
+        "not allowed",
+        "illegal",
+        "not permitted"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Bait rules"
+        }
+      ],
+      "source_ref": "regulations_overview.md:62-85 (Bait rules)",
+      "out_of_scope": false,
+      "notes": "Casual phrasing variant; 'shiners' is angler slang for a bait-fish species, not a term used in the KB itself."
+    },
+    {
+      "id": "RB4",
+      "tier": "regression",
+      "category": "legality",
+      "vocab_gap": true,
+      "match_mode": "any",
+      "question": "is bait fish legal?",
+      "expected_facts": [
+        "prohibited",
+        "prohibits",
+        "banned",
+        "bans",
+        "not allowed",
+        "illegal",
+        "not permitted"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Bait rules"
+        }
+      ],
+      "source_ref": "regulations_overview.md:62-85 (Bait rules)",
+      "out_of_scope": false,
+      "notes": "Casual phrasing variant, deliberately vague about which bait-fish species."
+    },
+    {
+      "id": "RB5",
+      "tier": "regression",
+      "category": "legality",
+      "vocab_gap": true,
+      "match_mode": "any",
+      "question": "my buddy wants to bring a bucket of live minnows for walleye, is that ok?",
+      "expected_facts": [
+        "prohibited",
+        "prohibits",
+        "banned",
+        "bans",
+        "not allowed",
+        "illegal",
+        "not permitted"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Bait rules"
+        },
+        {
+          "file": "species_tackle.md",
+          "heading": "Walleye (doré jaune)"
+        }
+      ],
+      "source_ref": "regulations_overview.md:62-85 (Bait rules); species_tackle.md:9-20 (Walleye, mentions a live-bait rig as a technique -- this is the exact species chunk that previously caused the model to infer permission)",
+      "out_of_scope": false,
+      "notes": "Compound/realistic phrasing that pulls in the walleye species chunk the original failure was grounded in -- the species chunk's technique mention must not override the core ban."
+    },
+    {
+      "id": "RB6",
+      "tier": "regression",
+      "category": "legality",
+      "vocab_gap": true,
+      "match_mode": "any",
+      "question": "can I fish with live shiners in a Quebec lake?",
+      "expected_facts": [
+        "prohibited",
+        "prohibits",
+        "banned",
+        "bans",
+        "not allowed",
+        "illegal",
+        "not permitted"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Bait rules"
+        }
+      ],
+      "source_ref": "regulations_overview.md:62-85 (Bait rules)",
+      "out_of_scope": false,
+      "notes": "Casual phrasing variant."
+    },
+    {
+      "id": "RB7",
+      "tier": "regression",
+      "category": "premise_check",
+      "vocab_gap": true,
+      "match_mode": "any",
+      "question": "I heard you can't use real minnows anymore, is that true?",
+      "expected_facts": [
+        "yes",
+        "correct",
+        "that's right",
+        "true",
+        "prohibited",
+        "banned",
+        "prohibits"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Bait rules"
+        }
+      ],
+      "source_ref": "regulations_overview.md:62-85 (Bait rules)",
+      "out_of_scope": false,
+      "notes": "Unlike W2 (hard tier, frozen), this question's premise is TRUE -- correct behavior is to CONFIRM it, not correct it. Deliberately placed alongside W2 to make the contrast explicit: W2 tests 'no province-wide bait ban exists' (true when W2 was written, before this diagnosis's KB fix) and RB7 tests the real, sourced rule. See the W2 note in diagnosis_live_bait.md -- W2 itself is left untouched per the frozen-eval-item rule."
+    },
+    {
+      "id": "RB8",
+      "tier": "regression",
+      "category": "single_fact",
+      "question": "do you need a permit to fish in Quebec?",
+      "expected_facts": [
+        "12"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Licensing"
+        }
+      ],
+      "source_ref": "regulations_overview.md:54-60 (Licensing, 'required for anyone 12 and older')",
+      "out_of_scope": false,
+      "notes": "Second confirmed province-wide core rule from diagnosis item 5 (the only other one besides the bait ban). Casual phrasing: 'permit' instead of 'licence'."
+    },
+    {
+      "id": "RB9",
+      "tier": "regression",
+      "category": "single_fact",
+      "question": "is there a kids exemption for the Quebec fishing license?",
+      "expected_facts": [
+        "12"
+      ],
+      "source_chunks": [
+        {
+          "file": "regulations_overview.md",
+          "heading": "Licensing"
+        }
+      ],
+      "source_ref": "regulations_overview.md:54-60 (Licensing, 'required for anyone 12 and older')",
+      "out_of_scope": false,
+      "notes": "Second licensing-rule regression item, phrased as an exemption question rather than a direct age question."
+    }
+  ]
+}

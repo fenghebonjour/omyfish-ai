@@ -299,6 +299,35 @@ def test_ask_unrelated_question_returns_404(client):
     assert r.status_code == 404
 
 
+def test_ask_pinned_rules_flag_off_by_default(client, monkeypatch):
+    def fake_ask_llm(question, context_chunks):
+        return "Smallmouth bass respond well to tube jigs on rocky points."
+
+    monkeypatch.setattr(router_module, "ask_llm", fake_ask_llm)
+    monkeypatch.delenv("REGS_FIX_PINNED", raising=False)
+
+    r = client.post("/regs/ask", json={"question": "best lure for smallmouth bass"})
+    assert r.status_code == 200
+    assert "Core rules (pinned)" not in r.json()["sources"]
+
+
+def test_ask_pinned_rules_flag_on_prepends_core_rules(client, monkeypatch):
+    captured = {}
+
+    def fake_ask_llm(question, context_chunks):
+        captured["context_chunks"] = context_chunks
+        return "Live bait fish are banned province-wide since 2017."
+
+    monkeypatch.setattr(router_module, "ask_llm", fake_ask_llm)
+    monkeypatch.setenv("REGS_FIX_PINNED", "1")
+
+    r = client.post("/regs/ask", json={"question": "live bait allowed in quebec?"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["sources"][0] == "Core rules (pinned)"
+    assert "live bait fish" in captured["context_chunks"][0].lower()
+
+
 def test_ask_llm_error_returns_503(client, monkeypatch):
     def fake_ask_llm(question, context_chunks):
         raise LLMError("refused")

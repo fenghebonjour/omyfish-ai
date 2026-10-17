@@ -78,3 +78,30 @@ main — see that repo's `Dockerfile`). No new dependency was added here
 (the rate limiter and exception handler use only stdlib + FastAPI/Starlette,
 already present), so `omyfish-python`'s bundled `pip install` list needs no
 changes for this pass to land cleanly on the Space's next rebuild.
+
+---
+
+## [ ] B — `ai-service`'s HF cache volume mount is stale, so the CLIP gate
+re-downloads ~600MB on every container restart
+
+**Status:** NOT STARTED. Found 2026-10-17 testing the regs_advisor
+live-bait fix locally — a plain `docker compose up -d --build` /
+container recreate took 5+ minutes instead of ~10s, confirmed via
+`docker stats` net I/O climbing to 500-600MB and HF Hub download log lines
+on every single startup.
+
+**Root cause:** `docker-compose.yml` mounts
+`~/.cache/huggingface:/root/.cache/huggingface:ro` — but item A's own
+security fix (non-root `USER app` in the `Dockerfile`) moved
+`ENV HF_HOME=/app/.cache/huggingface` without updating this compose
+volume to match. So the mount targets a path (`/root/.cache/huggingface`)
+that nothing reads from anymore (confirmed: non-root `app` user gets
+`Permission denied` trying to even `ls` it), and it's `:ro` besides, so a
+fresh cache couldn't be written back to it even if the path were right.
+Net effect: the volume exists in the compose file but does nothing, and
+`predictors/fish_gate.py`'s CLIP weights get fetched from the Hugging Face
+Hub from scratch every time the container is created.
+
+**Fix:** point the compose volume at `/app/.cache/huggingface` (and drop
+`:ro`, or mount a separate writable path and seed it) so it actually lines
+up with the Dockerfile's `HF_HOME`.

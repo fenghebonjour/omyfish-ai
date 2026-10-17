@@ -1,0 +1,16 @@
+{
+  "_comment": "REGS_FIX_PINNED core-rules block. Each 'text' is verbatim/lightly condensed from the cited knowledge_base section -- see diagnosis_live_bait.md Phase 1 item 5 for how these two were identified as the only true province-wide (all-species, all-zone) rules currently in the KB. Do not add a rule here without a source file+heading to cite.",
+  "last_verified": "REPLACE_ME -- confirm these two rules are still current on quebec.ca before relying on this block in production; not yet confirmed by a human as of file creation",
+  "rules": [
+    {
+      "id": "licensing",
+      "source": "regulations_overview.md#Licensing (lines 54-60)",
+      "text": "A valid Quebec fishing licence (sport-fishing permit) is required for anyone 12 and older to fish in Quebec, with some exceptions (e.g. a few designated free-fishing days per year). Non-residents pay a different fee than Quebec residents."
+    },
+    {
+      "id": "bait",
+      "source": "regulations_overview.md#Bait rules (lines 62-85); quebec.ca \"Use of bait\" (https://www.quebec.ca/en/tourism-recreation-sport/sporting-and-outdoor-activities/sport-fishing/fishing-techniques/use-baits, last updated 2026-01-16)",
+      "text": "Since April 1, 2017, the use and possession of live bait fish (any fish, mollusc, crustacean, or marine animal used as bait -- this includes minnows and shiners), regardless of species, is prohibited throughout Quebec, including during winter fishing periods. Importing live or dead bait fish is also prohibited. Earthworms, leeches, insects, and frogs are not considered bait fish, so their use is permitted unless otherwise indicated."
+    }
+  ]
+}

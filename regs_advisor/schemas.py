@@ -40,6 +40,11 @@ class AskResponse(BaseModel):
     answer: str
     sources: list[str]  # KB section headings used as context
     disclaimer: str = "Informational only — verify current regulations at quebec.ca before fishing."
+    # Populated only in agentic mode (REGS_MODE=agentic, see router.py) — the
+    # single-hop path leaves these at their defaults, unchanged.
+    mode: str = "single_hop"
+    tool_call_count: Optional[int] = None
+    queries: Optional[list[dict]] = None
 
 
 class StationOut(BaseModel):

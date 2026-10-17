@@ -20,6 +20,11 @@ services:
       MODEL_PATH: /checkpoints/best.pt
       CLASSES_PATH: /checkpoints/classes.json
       METADATA_PATH: /metadata/fish_info.json
+      # See eval/results/diagnosis_live_bait.md: both fixes existed in code but were
+      # inert with no env var ever setting them, so /regs/ask kept giving the wrong
+      # live-bait answer. Default them on here instead of leaving them opt-in.
+      REGS_FIX_PINNED: "1"
+      REGS_FIX_GUARDRAIL: "1"
     volumes:
       - ../omyfish-python/checkpoints:/checkpoints:ro
       - ../omyfish-python/data/metadata:/metadata:ro
