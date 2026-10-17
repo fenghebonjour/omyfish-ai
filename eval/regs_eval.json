@@ -570,14 +570,15 @@
       "match_mode": "any",
       "question": "Quebec regulations say I can only fish with artificial lures, right? No live bait allowed anywhere?",
       "expected_facts": [
-        "worms and leeches are allowed",
-        "worms are permitted",
-        "leeches are permitted",
+        "earthworms",
+        "leeches",
+        "insects and frogs",
+        "not considered to be bait fish",
+        "not considered bait fish",
+        "other live baits",
+        "live non-fish baits",
         "not limited to artificial lures",
-        "live bait like worms",
-        "worms or leeches is allowed",
-        "only live baitfish",
-        "minnows are banned"
+        "only live baitfish"
       ],
       "source_chunks": [
         {
@@ -587,7 +588,7 @@
       ],
       "source_ref": "regulations_overview.md:62-85 ('Bait rules' -- live baitfish, e.g. minnows, banned province-wide since 2017-04-01; worms, leeches, insects, frogs are not baitfish and remain permitted)",
       "out_of_scope": false,
-      "notes": "False premise, but in the opposite direction from this item's original version: it is NOT true that only artificial lures are allowed -- worms, leeches, insects, and frogs remain legal live bait. The actual ban covers only live baitfish (e.g. minnows), province-wide since 2017-04-01. This item previously assumed no province-wide ban existed at all and would have rewarded an answer saying live baitfish/minnows are permitted; corrected 2026-10-17 after regulations_overview.md's 'Bait rules' section and pinned_rules.json's bait rule were added from the official quebec.ca source (see eval/results/diagnosis_live_bait.md). match_mode 'any' -- pass if the answer contains any one correction phrase, graded as a heuristic (see report)."
+      "notes": "False premise, but in the opposite direction from this item's original version: it is NOT true that only artificial lures are allowed -- worms, leeches, insects, and frogs remain legal live bait. The actual ban covers only live baitfish (e.g. minnows), province-wide since 2017-04-01. This item previously assumed no province-wide ban existed at all and would have rewarded an answer saying live baitfish/minnows are permitted; corrected 2026-10-17 after regulations_overview.md's 'Bait rules' section and pinned_rules.json's bait rule were added from the official quebec.ca source (see eval/results/diagnosis_live_bait.md). match_mode 'any' -- pass if the answer contains any one correction phrase, graded as a heuristic (see report). expected_facts revised same day: the first correction used full phrasings ('worms and leeches are allowed') that a correct-but-differently-worded answer won't contain verbatim -- confirmed live, a correct answer explaining the exemption still FAILed grading. Replaced with short fragments (species names, 'not considered ... bait fish') that recur across differently-worded correct answers; none of these words appear in the question itself, so their presence is still a reliable signal the model pulled in the real exemption rather than just echoing the premise."
     },
     {
       "id": "V1",

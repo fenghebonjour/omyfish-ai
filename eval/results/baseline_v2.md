@@ -1,85 +1,88 @@
 # Regs & Tips chatbot — baseline eval v2 (basic + hard tiers)
 
-- Overall hit@3: 82% (23/28)
-- Overall answer correctness: 93% (28/30)
+- Overall hit@3: 84% (31/37)
+- Overall answer correctness: 95% (37/39)
 
 ## By tier
 
 | tier | n | hit@3 | correctness |
 |---|---|---|---|
 | basic | 18 | 94% (15/16) | 94% (17/18) |
-| hard | 12 | 67% (8/12) | 92% (11/12) |
+| hard | 12 | 58% (7/12) | 92% (11/12) |
+| regression | 9 | 100% (9/9) | 100% (9/9) |
 
 ## By category
 
 | category | n | hit@3 | correctness |
 |---|---|---|---|
-| single_fact | 6 | 100% (6/6) | 100% (6/6) |
+| single_fact | 8 | 100% (8/8) | 100% (8/8) |
 | conversational | 4 | 100% (4/4) | 100% (4/4) |
 | two_hop | 4 | 75% (3/4) | 75% (3/4) |
 | exact_term | 2 | 100% (2/2) | 100% (2/2) |
 | out_of_scope | 2 | n/a | 100% (2/2) |
-| compound | 5 | 80% (4/5) | 80% (4/5) |
-| compare | 3 | 100% (3/3) | 100% (3/3) |
-| premise_check | 2 | 50% (1/2) | 100% (2/2) |
+| compound | 5 | 80% (4/5) | 100% (5/5) |
+| compare | 3 | 67% (2/3) | 100% (3/3) |
+| premise_check | 3 | 67% (2/3) | 67% (2/3) |
 | vague | 2 | 0% (0/2) | 100% (2/2) |
+| legality | 6 | 100% (6/6) | 100% (6/6) |
 
 ## vocab_gap items only (casual phrasing, differs from KB wording)
 
-- n=7, hit@3: 57% (4/7), correctness: 86% (6/7)
+- n=13, hit@3: 77% (10/13), correctness: 100% (13/13)
 
 ## Failures
 
+### T2 [basic] (two_hop)
+- Question: Are both muskellunge and lake sturgeon restricted to angling-only gear in the tackle notes?
+- Answer: Yes. Both the lake‑sturgeon and the muskellunge entries note an “angling‑only restriction.” Be sure to verify the current regulations before you fish, as limits and rules can change.
+- Correctness miss — missing facts: ['lake sturgeon']
+
 ### T3 [basic] (two_hop)
 - Question: Do I need a licence at age 10, and is a consumption advisory the same thing as a legal catch limit?
-- Answer: No, a consumption advisory is **not** the same as a legal catch / possession limit. The advisory only gives health guidance about how many meals you should eat, based on mercury or other contaminants; it does not dictate how many fish you may legally catch or keep.
+- Answer: - **Licence requirement:** No. A Quebec sport‑fishing licence is required only for people **12 years old or older** (with a few special free‑fishing days). At age 10 you are not required to have a licence.  
 
-The reference material does not mention the age at which a sport‑fishing licence is required, so I can’t answer that from the provided context. Please check the official Québec website (quebec.ca) or the OMyFish app’s Regs lookup for the licence‑age rules.
+- **Consumption advisory vs. legal limit:** No. A consumption advisory is a health guideline about how many meals you should eat, based on mercury or other contaminants. It is **separate** from the legal daily catch‑and‑keep limit, which is set by the province.
 
-*Always verify the current licence requirements, catch limits, seasons and any consumption advisories before you head out.*
+*Always double‑check the current regulations and any advisories on quebec.ca or in the OMyFish app before you head out.*
 - Retrieval miss — retrieved: [('regulations_overview.md', 'Consumption advisories are a different question'), ('regulations_overview.md', 'Fishing zones'), ('regulations_overview.md', 'This is a plain-language summary to help anglers understand how Quebec fishing')]
-- Correctness miss — missing facts: ['12', 'separate']
 
 ### H2 [hard vocab_gap] (compound)
 - Question: Does my 9-year-old need a fishing license, and is there a size range I'd have to release a walleye within?
-- Answer: The reference material doesn’t specify whether a 9‑year‑old must have a fishing licence – you’ll need to check the official licence rules on quebec.ca or in the OMyFish app’s licence‑lookup section.
+- Answer: **License:** No. In Quebec a sport‑fishing licence is required only for anglers 12 years old or older, so a 9‑year‑old does not need one.
 
-For walleye, many zones use a length‑based “slot” limit. For example, Zone 27 requires you to release any walleye that measures **37 cm to 53 cm inclusive**. Because the exact slot can vary from zone to zone, you’ll need to look up the specific limit for the zone you’ll be fishing in.
+**Walleye size limit:** Walleye are subject to a length‑based “slot” limit in many zones. For example, Zone 27 uses a 37 cm – 53 cm slot, meaning fish that fall inside that range must be released. The exact slot varies by zone, so you’ll need to check the regulation for the specific zone you’ll be fishing in.
 
-*Always verify the current licence requirements and size limits before you head out, and check any consumption advisories if you plan to eat the fish.*
+*Always verify the current licence requirement, zone‑specific slot limits, and any other rules before you head out.*
 - Retrieval miss — retrieved: [('regulations_overview.md', 'What a "limit" usually includes'), ('species_tackle.md', 'Walleye (doré jaune)'), ('regulations_overview.md', 'Fishing zones')]
-- Correctness miss — missing facts: ['12']
 
-### W2 [hard vocab_gap] (premise_check)
-- Question: Quebec regulations say I can only fish with artificial lures, right? No live bait allowed anywhere?
-- Answer: The reference material doesn’t say that Quebec has a blanket rule requiring only artificial lures. In fact, it notes that lake‑sturgeon anglers often use **live bait** such as worms, leeches, or cut bait, while other species (like lake‑trout or brook‑trout) are commonly fished with lures.  
+### CMP2 [hard vocab_gap] (compare)
+- Question: Are walleye and northern pike active at the same times of day, or does one bite better at night?
+- Answer: Northern pike tend to bite most actively **during the heat of the day**, while walleye are strongest **at dawn, dusk, and after dark**. So their peak activity periods differ, with walleye generally providing better night‑time action.  
 
-Because catch limits, seasons, permitted gear – including whether live bait is allowed – are set **per zone and per species**, you need to consult the specific regulations for the zone you’ll be fishing in.
+*Remember to verify current regulations (licensing, slot limits, bait rules, etc.) before you head out.*
+- Retrieval miss — retrieved: [('species_tackle.md', 'Northern pike (grand brochet)'), ('regulations_overview.md', 'Consumption advisories are a different question'), ('species_tackle.md', 'Yellow perch (perchaude) & black crappie (marigane noire)')]
 
-**Tip:** Check the zone‑specific Regs lookup in the app or visit quebec.ca to confirm the current rules for your target species and area. Always verify the latest regulations before you head out.
-- Retrieval miss — retrieved: [('regulations_overview.md', 'Fishing zones'), ('species_tackle.md', 'Lake sturgeon (esturgeon jaune)'), ('species_tackle.md', 'Editorial notes on how anglers commonly target these species in Quebec. This')]
+### W1 [hard] (premise_check)
+- Question: Since walleye and pike are basically the same fish, is the slot limit example the same for both?
+- Answer: The context only mentions a length‑based “slot” limit for walleye (e.g., Zone 27’s 37–53 cm range). It does not provide any slot‑limit information for northern pike, so we can’t confirm that the same example applies to pike.
+
+Please check the current regulations for pike on quebec.ca or in the app’s Regs lookup to be sure. Remember to verify the latest limits and any consumption advisories before you fish.
+- Retrieval miss — retrieved: [('species_tackle.md', 'Northern pike (grand brochet)'), ('regulations_overview.md', 'Consumption advisories are a different question'), ('regulations_overview.md', 'This is a plain-language summary to help anglers understand how Quebec fishing')]
+- Correctness miss — missing facts: ['different species', 'different fish', 'not the same species', 'two different', 'walleye only', 'only walleye', 'specific to walleye', 'mention a slot limit', 'mention any slot limit', 'only for walleye']
 
 ### V1 [hard] (vague)
 - Question: What's the catch limit for my favorite fish?
-- Answer: I’m sorry—I don’t have the specific catch limit for the fish you’re thinking of. The reference only notes that muskellunge “often carry a low daily limit,” but it doesn’t give an exact number, and no other species are detailed.
+- Answer: I’m sorry—I don’t have a specific catch limit for the fish you’re thinking of in the provided information. Please check the detailed zone‑specific regulations on [quebec.ca](https://www.quebec.ca/en/tourism-and-recreation/sporting-and-outdoor-activities/sport-fishing) or use the app’s Regs lookup to get the exact limit for that species.  
 
-Please check the official [quebec.ca](https://www.quebec.ca/en/tourism-and-recreation/sporting-and-outdoor-activities/sport-fishing) site or use the OMyFish app’s Regs lookup for the current catch/possession limit for your favorite species.  
-
-**Reminder:** Always verify the latest regulations (limits, seasons, size rules, and any consumption advisories) before you go fishing.
+*Always verify the current regulations before you fish.*
 - Retrieval miss — retrieved: [('regulations_overview.md', 'Consumption advisories are a different question'), ('regulations_overview.md', 'This is a plain-language summary to help anglers understand how Quebec fishing'), ('regulations_overview.md', 'What a "limit" usually includes')]
 
 ### V2 [hard vocab_gap] (vague)
 - Question: Can I keep a legal walleye around here?
-- Answer: Walleye in Quebec are often subject to a length‑based “slot” limit. In many zones (for example, Zone 27 the protected slot is 37 – 53 cm), you may only keep a walleye that is **outside** that size range and that you do not exceed the daily possession limit or any seasonal restriction.
+- Answer: The answer depends on the specific zone you’re fishing in. In many Quebec zones walleye are subject to a length‑based “slot” limit (for example, Zone 27 protects fish 37 cm – 53 cm). You may keep a walleye only if it falls **outside** that protected size range and you stay within any daily catch/possession limits that apply to your zone, and you have a valid sport‑fishing licence (required for anyone 12 years or older).
 
-So, before you decide to keep a walleye you’ve caught, verify:
+Because the exact slot limits and daily limits vary by zone, the answer can’t be confirmed without knowing your location. Check the zone‑specific regulation sheet (or the app’s Regs lookup) for the precise limits before keeping the fish.  
 
-* the exact slot dimensions for the zone you’re fishing in,  
-* the daily catch/possession limit for walleye (or walleye + sauger combined), and  
-* that you are within the open season for the species.
-
-If the fish’s length falls outside the protected slot and you are within those other limits, it can be kept legally.  
-
-**Reminder:** Always double‑check the current regulations (quebec.ca or the OMyFish app’s Regs lookup) before you keep or release a fish, and remember that consumption advisories are a separate health guideline.
+*Always verify the current regulations and any consumption advisories before you fish.*
 - Retrieval miss — retrieved: [('species_tackle.md', 'Walleye (doré jaune)'), ('species_tackle.md', 'Lake sturgeon (esturgeon jaune)'), ('regulations_overview.md', 'Consumption advisories are a different question')]
 

@@ -1,11 +1,11 @@
 {
   "summary": {
     "overall": {
-      "n": 30,
-      "hit_at_3": 0.8214285714285714,
-      "hit_at_3_fraction": "23/28",
-      "correctness": 0.9333333333333333,
-      "correctness_fraction": "28/30"
+      "n": 39,
+      "hit_at_3": 0.8378378378378378,
+      "hit_at_3_fraction": "31/37",
+      "correctness": 0.9487179487179487,
+      "correctness_fraction": "37/39"
     },
     "by_tier": {
       "basic": {
@@ -17,19 +17,26 @@
       },
       "hard": {
         "n": 12,
-        "hit_at_3": 0.6666666666666666,
-        "hit_at_3_fraction": "8/12",
+        "hit_at_3": 0.5833333333333334,
+        "hit_at_3_fraction": "7/12",
         "correctness": 0.9166666666666666,
         "correctness_fraction": "11/12"
+      },
+      "regression": {
+        "n": 9,
+        "hit_at_3": 1.0,
+        "hit_at_3_fraction": "9/9",
+        "correctness": 1.0,
+        "correctness_fraction": "9/9"
       }
     },
     "by_category": {
       "single_fact": {
-        "n": 6,
+        "n": 8,
         "hit_at_3": 1.0,
-        "hit_at_3_fraction": "6/6",
+        "hit_at_3_fraction": "8/8",
         "correctness": 1.0,
-        "correctness_fraction": "6/6"
+        "correctness_fraction": "8/8"
       },
       "conversational": {
         "n": 4,
@@ -63,22 +70,22 @@
         "n": 5,
         "hit_at_3": 0.8,
         "hit_at_3_fraction": "4/5",
-        "correctness": 0.8,
-        "correctness_fraction": "4/5"
+        "correctness": 1.0,
+        "correctness_fraction": "5/5"
       },
       "compare": {
         "n": 3,
-        "hit_at_3": 1.0,
-        "hit_at_3_fraction": "3/3",
+        "hit_at_3": 0.6666666666666666,
+        "hit_at_3_fraction": "2/3",
         "correctness": 1.0,
         "correctness_fraction": "3/3"
       },
       "premise_check": {
-        "n": 2,
-        "hit_at_3": 0.5,
-        "hit_at_3_fraction": "1/2",
-        "correctness": 1.0,
-        "correctness_fraction": "2/2"
+        "n": 3,
+        "hit_at_3": 0.6666666666666666,
+        "hit_at_3_fraction": "2/3",
+        "correctness": 0.6666666666666666,
+        "correctness_fraction": "2/3"
       },
       "vague": {
         "n": 2,
@@ -86,14 +93,21 @@
         "hit_at_3_fraction": "0/2",
         "correctness": 1.0,
         "correctness_fraction": "2/2"
+      },
+      "legality": {
+        "n": 6,
+        "hit_at_3": 1.0,
+        "hit_at_3_fraction": "6/6",
+        "correctness": 1.0,
+        "correctness_fraction": "6/6"
       }
     },
     "vocab_gap": {
-      "n": 7,
-      "hit_at_3": 0.5714285714285714,
-      "hit_at_3_fraction": "4/7",
-      "correctness": 0.8571428571428571,
-      "correctness_fraction": "6/7"
+      "n": 13,
+      "hit_at_3": 0.7692307692307693,
+      "hit_at_3_fraction": "10/13",
+      "correctness": 1.0,
+      "correctness_fraction": "13/13"
     }
   },
   "results": [
@@ -103,12 +117,13 @@
       "category": "single_fact",
       "vocab_gap": false,
       "question": "What length range does the walleye tackle notes give as an example slot limit, and which zone number is used in that example?",
-      "answer": "The example slot limit mentioned is **37 cm to 53 cm**, and the example zone is **Zone 27**.  \n\n*Remember to verify the current regulations for your specific zone and waterbody before you fish.*",
+      "answer": "The walleye notes give an example slot limit of **37 cm to 53 cm**, and the example is for **Zone 27**.  \n\n*Always verify the current regulations for your specific waterbody before fishing.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Walleye (doré jaune)",
         "What a \"limit\" usually includes",
         "Consumption advisories are a different question",
-        "Fishing zones"
+        "Bait rules"
       ],
       "error": null,
       "retrieval": {
@@ -118,17 +133,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Walleye (doré jaune)",
-            "score": 0.2258
+            "score": 0.2165
           },
           {
             "file": "regulations_overview.md",
             "heading": "What a \"limit\" usually includes",
-            "score": 0.2001
+            "score": 0.1909
           },
           {
             "file": "regulations_overview.md",
             "heading": "Consumption advisories are a different question",
-            "score": 0.1551
+            "score": 0.1488
           }
         ]
       },
@@ -143,8 +158,9 @@
       "category": "single_fact",
       "vocab_gap": false,
       "question": "According to the regulations overview, at what age does someone need their own Quebec fishing licence?",
-      "answer": "A sport‑fishing licence is required for anyone **12 years old or older** who wants to fish in Quebec (aside from a few designated free‑fishing days).  \n\n*Remember to verify the current regulations before you head out, as rules can change.*",
+      "answer": "A valid Quebec sport‑fishing licence is required for anyone **12 years old or older**.  \n\n*Remember to verify that this age requirement is still current before you head out.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Licensing",
         "Editorial notes on how anglers commonly target these species in Quebec. This",
         "This is a plain-language summary to help anglers understand how Quebec fishing",
@@ -158,17 +174,17 @@
           {
             "file": "regulations_overview.md",
             "heading": "Licensing",
-            "score": 0.2053
+            "score": 0.1955
           },
           {
             "file": "species_tackle.md",
             "heading": "Editorial notes on how anglers commonly target these species in Quebec. This",
-            "score": 0.181
+            "score": 0.1867
           },
           {
             "file": "regulations_overview.md",
             "heading": "This is a plain-language summary to help anglers understand how Quebec fishing",
-            "score": 0.1484
+            "score": 0.1508
           }
         ]
       },
@@ -183,12 +199,13 @@
       "category": "single_fact",
       "vocab_gap": false,
       "question": "According to the overview, what's the full numeric range of fishing zones Quebec is divided into?",
-      "answer": "Quebec’s fishing zones are numbered **Zone 1 through Zone 29**.  \n\n*Reminder: always verify current regulations for the specific zone you’ll be fishing in before you head out.*",
+      "answer": "Quebec’s fishing zones run from **Zone 1** up to **Zone 29** (some of these are further split into north/south or east/west halves).  \n\n*Always verify the current regulations for the specific zone you’ll be fishing in before heading out.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Fishing zones",
         "This is a plain-language summary to help anglers understand how Quebec fishing",
         "What a \"limit\" usually includes",
-        "Northern pike (grand brochet)"
+        "Walleye (doré jaune)"
       ],
       "error": null,
       "retrieval": {
@@ -198,12 +215,12 @@
           {
             "file": "regulations_overview.md",
             "heading": "Fishing zones",
-            "score": 0.2907
+            "score": 0.2906
           },
           {
             "file": "regulations_overview.md",
             "heading": "This is a plain-language summary to help anglers understand how Quebec fishing",
-            "score": 0.1907
+            "score": 0.1861
           },
           {
             "file": "regulations_overview.md",
@@ -223,8 +240,9 @@
       "category": "single_fact",
       "vocab_gap": false,
       "question": "What example daily catch limit does the regulations overview give for walleye and sauger combined?",
-      "answer": "The regulations overview uses the example “6 in all” as the daily catch/possession limit for walleye and sauger combined.  \n\n*Remember to verify the current regulations for your specific zone before you fish.*",
+      "answer": "The regulations overview cites an example catch‑limit of **“6 in all”** for walleye and sauger combined.  \n\n*Always verify the current limits for your specific zone and season before you fish.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Editorial notes on how anglers commonly target these species in Quebec. This",
         "What a \"limit\" usually includes",
         "Consumption advisories are a different question",
@@ -238,17 +256,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Editorial notes on how anglers commonly target these species in Quebec. This",
-            "score": 0.2184
+            "score": 0.2241
           },
           {
             "file": "regulations_overview.md",
             "heading": "What a \"limit\" usually includes",
-            "score": 0.1745
+            "score": 0.1778
           },
           {
             "file": "regulations_overview.md",
             "heading": "Consumption advisories are a different question",
-            "score": 0.1346
+            "score": 0.1275
           }
         ]
       },
@@ -263,8 +281,9 @@
       "category": "single_fact",
       "vocab_gap": false,
       "question": "Per the tackle notes, how many lake sturgeon can an angler typically keep under most Quebec zones' possession limit?",
-      "answer": "Most Quebec zones set a very low possession limit for lake sturgeon—typically just one fish per angler.  \n\n*Remember to verify the current regulations for the specific zone you’ll be fishing in before you keep any sturgeon.*",
+      "answer": "Most zones set a very low possession limit for lake sturgeon—often **just one fish** per angler.  \n\n*Remember to verify the current, zone‑specific limits and any other regulations before you fish.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Lake sturgeon (esturgeon jaune)",
         "Editorial notes on how anglers commonly target these species in Quebec. This",
         "Fishing zones",
@@ -278,17 +297,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Lake sturgeon (esturgeon jaune)",
-            "score": 0.4121
+            "score": 0.3976
           },
           {
             "file": "species_tackle.md",
             "heading": "Editorial notes on how anglers commonly target these species in Quebec. This",
-            "score": 0.158
+            "score": 0.1538
           },
           {
             "file": "regulations_overview.md",
             "heading": "Fishing zones",
-            "score": 0.1368
+            "score": 0.1471
           }
         ]
       },
@@ -303,8 +322,9 @@
       "category": "single_fact",
       "vocab_gap": false,
       "question": "What is the name of the dataset the consumption-advisory numbers in this app come from?",
-      "answer": "The consumption‑advisory numbers come from the **Données Québec “Guide de consommation du poisson de pêche sportive en eau douce”** dataset.  \n\n*Remember to verify the most current advisories and regulations before fishing or eating your catch.*",
+      "answer": "The consumption‑advisory numbers are sourced from the **Données Québec “Guide de consommation du poisson de pêche sportive en eau douce”** dataset.  \n\n*Reminder: always verify current advisories and regulations before eating any catch.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Where the numbers in this app come from",
         "Consumption advisories are a different question",
         "This is a plain-language summary to help anglers understand how Quebec fishing",
@@ -318,17 +338,17 @@
           {
             "file": "regulations_overview.md",
             "heading": "Where the numbers in this app come from",
-            "score": 0.3969
+            "score": 0.3912
           },
           {
             "file": "regulations_overview.md",
             "heading": "Consumption advisories are a different question",
-            "score": 0.1711
+            "score": 0.1686
           },
           {
             "file": "regulations_overview.md",
             "heading": "This is a plain-language summary to help anglers understand how Quebec fishing",
-            "score": 0.1676
+            "score": 0.1628
           }
         ]
       },
@@ -343,11 +363,12 @@
       "category": "conversational",
       "vocab_gap": false,
       "question": "My buddy mentioned there's an example in the app about keeping walleye only within a certain size window -- what's that size range?",
-      "answer": "The example given in the app shows a walleye “slot” limit of **37 cm to 53 cm inclusive** (as illustrated for Zone 27).  \n\nBe sure to confirm the exact size range for the specific zone you’ll be fishing, and always verify the current regulations before you keep any fish.",
+      "answer": "The example given in the app refers to a slot‑size limit of **37 cm to 53 cm** (for Zone 27).  \n\nBe sure to verify the current size limits for the specific zone you’ll be fishing in before you keep any walleye.",
       "sources_returned": [
+        "Core rules (pinned)",
         "What a \"limit\" usually includes",
-        "Walleye (doré jaune)",
         "Muskellunge (maskinongé)",
+        "Walleye (doré jaune)",
         "Consumption advisories are a different question"
       ],
       "error": null,
@@ -358,17 +379,17 @@
           {
             "file": "regulations_overview.md",
             "heading": "What a \"limit\" usually includes",
-            "score": 0.2372
-          },
-          {
-            "file": "species_tackle.md",
-            "heading": "Walleye (doré jaune)",
-            "score": 0.1434
+            "score": 0.2175
           },
           {
             "file": "species_tackle.md",
             "heading": "Muskellunge (maskinongé)",
-            "score": 0.1413
+            "score": 0.1343
+          },
+          {
+            "file": "species_tackle.md",
+            "heading": "Walleye (doré jaune)",
+            "score": 0.1271
           }
         ]
       },
@@ -383,12 +404,13 @@
       "category": "conversational",
       "vocab_gap": false,
       "question": "Does my 11-year-old need their own fishing licence to fish with me in Quebec?",
-      "answer": "No. In Quebec a sport‑fishing licence is only required for anglers **12 years of age or older** (aside from a few designated free‑fishing days). An 11‑year‑old can fish with you without a licence.\n\n*Always double‑check the latest regulations before you head out, especially if you’ll be fishing on a free‑fishing day or in a special zone.*",
+      "answer": "No. In Quebec a sport‑fishing licence is required only for anglers **12 years of age or older** (with a few special free‑fishing days). Your 11‑year‑old can fish with you without a licence.  \n\n*Always double‑check the latest regulations on quebec.ca before you go out, especially if a free‑fishing day or other exception might apply.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Licensing",
         "Fishing zones",
         "Consumption advisories are a different question",
-        "This is a plain-language summary to help anglers understand how Quebec fishing"
+        "Bait rules"
       ],
       "error": null,
       "retrieval": {
@@ -398,17 +420,17 @@
           {
             "file": "regulations_overview.md",
             "heading": "Licensing",
-            "score": 0.3093
+            "score": 0.3025
           },
           {
             "file": "regulations_overview.md",
             "heading": "Fishing zones",
-            "score": 0.1649
+            "score": 0.164
           },
           {
             "file": "regulations_overview.md",
             "heading": "Consumption advisories are a different question",
-            "score": 0.1522
+            "score": 0.1401
           }
         ]
       },
@@ -423,8 +445,9 @@
       "category": "conversational",
       "vocab_gap": false,
       "question": "I landed a huge sturgeon in Quebec -- how many of those am I typically allowed to bring home?",
-      "answer": "In most Quebec zones the possession limit for lake sturgeon is **just one fish** (often 1 per day), and the fish must be caught with rod‑and‑line only.  \n\nBecause limits can vary by zone, you should confirm the exact rule for the water you’re fishing on — check the live Regs lookup in the OMyFish app or the official site at quebec.ca before you keep any sturgeon.  \n\n*Always verify the current regulations (limit, season, size, and any consumption advisories) before taking a fish home.*",
+      "answer": "Most Quebec zones set a very low possession limit for lake sturgeon – usually just **one** fish that you may keep.  \n\n*Remember to check the current zone‑specific regulation on quebec.ca or in the app’s Regs lookup before keeping any sturgeon, and be sure you have a valid sport‑fishing licence.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Lake sturgeon (esturgeon jaune)",
         "What a \"limit\" usually includes",
         "Walleye (doré jaune)",
@@ -438,17 +461,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Lake sturgeon (esturgeon jaune)",
-            "score": 0.3013
+            "score": 0.2758
           },
           {
             "file": "regulations_overview.md",
             "heading": "What a \"limit\" usually includes",
-            "score": 0.147
+            "score": 0.153
           },
           {
             "file": "species_tackle.md",
             "heading": "Walleye (doré jaune)",
-            "score": 0.1167
+            "score": 0.1206
           }
         ]
       },
@@ -463,8 +486,9 @@
       "category": "conversational",
       "vocab_gap": false,
       "question": "Someone told me muskie have a really strict gear rule -- is that actually true?",
-      "answer": "Yes. In most Quebec zones muskellunge (and tiger muskellunge) are subject to an **angling‑only** restriction—meaning you may keep them only with rod‑and‑line gear, not with tip‑ups, nets, or other methods. However, the exact gear rule can vary by zone or even by specific waterbody, so always check the current limit for the area you’ll fish.\n\n*Reminder: Verify the latest regulations (catch limit, gear rule, season, length limits) on quebec.ca or in the OMyFish app before you go out.*",
+      "answer": "Yes. In most Quebec zones muskie (and tiger muskellunge) are subject to an **angling‑only restriction**, meaning you may keep them only with rod‑and‑line gear (no nets, tip‑ups, etc.). However, the exact gear rule can vary by zone or waterbody, so always check the current regulation for the specific area before you fish.  \n\n*Reminder: verify the latest limits, gear rules, and any consumption advisories on quebec.ca or in the app’s Regs lookup before keeping a muskie.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Muskellunge (maskinongé)",
         "What a \"limit\" usually includes",
         "This is a plain-language summary to help anglers understand how Quebec fishing",
@@ -478,17 +502,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Muskellunge (maskinongé)",
-            "score": 0.1616
+            "score": 0.1665
           },
           {
             "file": "regulations_overview.md",
             "heading": "What a \"limit\" usually includes",
-            "score": 0.1295
+            "score": 0.1149
           },
           {
             "file": "regulations_overview.md",
             "heading": "This is a plain-language summary to help anglers understand how Quebec fishing",
-            "score": 0.0919
+            "score": 0.096
           }
         ]
       },
@@ -503,12 +527,13 @@
       "category": "two_hop",
       "vocab_gap": false,
       "question": "What's the example length range for walleye in the tackle notes, and separately, how many lake sturgeon can I typically keep per those same notes?",
-      "answer": "- **Walleye example length‑slot:** 37 cm – 53 cm (as cited for Zone 27).  \n- **Lake sturgeon typical possession limit:** usually just **one** fish per day.\n\n*Always verify the current regulations for your specific zone and season before you head out, as limits can change.*",
+      "answer": "The walleye example slot limit cited is **37 cm – 53 cm**.  \nFor lake sturgeon, the notes say the possession limit is **often just one** fish.\n\n*Always verify the current zone‑specific regulations and any recent updates before you go fishing.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Lake sturgeon (esturgeon jaune)",
         "Walleye (doré jaune)",
-        "Editorial notes on how anglers commonly target these species in Quebec. This",
-        "What a \"limit\" usually includes"
+        "What a \"limit\" usually includes",
+        "Editorial notes on how anglers commonly target these species in Quebec. This"
       ],
       "error": null,
       "retrieval": {
@@ -518,17 +543,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Lake sturgeon (esturgeon jaune)",
-            "score": 0.2599
+            "score": 0.2456
           },
           {
             "file": "species_tackle.md",
             "heading": "Walleye (doré jaune)",
-            "score": 0.2003
+            "score": 0.2029
           },
           {
-            "file": "species_tackle.md",
-            "heading": "Editorial notes on how anglers commonly target these species in Quebec. This",
-            "score": 0.1668
+            "file": "regulations_overview.md",
+            "heading": "What a \"limit\" usually includes",
+            "score": 0.1685
           }
         ]
       },
@@ -543,12 +568,13 @@
       "category": "two_hop",
       "vocab_gap": false,
       "question": "Are both muskellunge and lake sturgeon restricted to angling-only gear in the tackle notes?",
-      "answer": "Yes. In the notes you provided, both lake sturgeon and muskellunge are described as having an “angling‑only” restriction in Quebec zones.  \n\n*Remember to verify the current regulations (limits, seasons, gear rules) before you head out, as rules can change.*",
+      "answer": "Yes. Both the lake‑sturgeon and the muskellunge entries note an “angling‑only restriction.” Be sure to verify the current regulations before you fish, as limits and rules can change.",
       "sources_returned": [
+        "Core rules (pinned)",
         "Lake sturgeon (esturgeon jaune)",
         "Muskellunge (maskinongé)",
         "Editorial notes on how anglers commonly target these species in Quebec. This",
-        "Yellow perch (perchaude) & black crappie (marigane noire)"
+        "Bait rules"
       ],
       "error": null,
       "retrieval": {
@@ -558,23 +584,25 @@
           {
             "file": "species_tackle.md",
             "heading": "Lake sturgeon (esturgeon jaune)",
-            "score": 0.3592
+            "score": 0.3384
           },
           {
             "file": "species_tackle.md",
             "heading": "Muskellunge (maskinongé)",
-            "score": 0.2255
+            "score": 0.2112
           },
           {
             "file": "species_tackle.md",
             "heading": "Editorial notes on how anglers commonly target these species in Quebec. This",
-            "score": 0.1653
+            "score": 0.1643
           }
         ]
       },
       "correctness": {
-        "passed": true,
-        "missing_facts": []
+        "passed": false,
+        "missing_facts": [
+          "lake sturgeon"
+        ]
       }
     },
     {
@@ -583,8 +611,9 @@
       "category": "two_hop",
       "vocab_gap": false,
       "question": "Do I need a licence at age 10, and is a consumption advisory the same thing as a legal catch limit?",
-      "answer": "No, a consumption advisory is **not** the same as a legal catch / possession limit. The advisory only gives health guidance about how many meals you should eat, based on mercury or other contaminants; it does not dictate how many fish you may legally catch or keep.\n\nThe reference material does not mention the age at which a sport‑fishing licence is required, so I can’t answer that from the provided context. Please check the official Québec website (quebec.ca) or the OMyFish app’s Regs lookup for the licence‑age rules.\n\n*Always verify the current licence requirements, catch limits, seasons and any consumption advisories before you head out.*",
+      "answer": "- **Licence requirement:** No. A Quebec sport‑fishing licence is required only for people **12 years old or older** (with a few special free‑fishing days). At age 10 you are not required to have a licence.  \n\n- **Consumption advisory vs. legal limit:** No. A consumption advisory is a health guideline about how many meals you should eat, based on mercury or other contaminants. It is **separate** from the legal daily catch‑and‑keep limit, which is set by the province.\n\n*Always double‑check the current regulations and any advisories on quebec.ca or in the OMyFish app before you head out.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Consumption advisories are a different question",
         "Fishing zones",
         "This is a plain-language summary to help anglers understand how Quebec fishing",
@@ -598,26 +627,23 @@
           {
             "file": "regulations_overview.md",
             "heading": "Consumption advisories are a different question",
-            "score": 0.285
+            "score": 0.2882
           },
           {
             "file": "regulations_overview.md",
             "heading": "Fishing zones",
-            "score": 0.1874
+            "score": 0.1897
           },
           {
             "file": "regulations_overview.md",
             "heading": "This is a plain-language summary to help anglers understand how Quebec fishing",
-            "score": 0.1762
+            "score": 0.1818
           }
         ]
       },
       "correctness": {
-        "passed": false,
-        "missing_facts": [
-          "12",
-          "separate"
-        ]
+        "passed": true,
+        "missing_facts": []
       }
     },
     {
@@ -626,8 +652,9 @@
       "category": "two_hop",
       "vocab_gap": false,
       "question": "What's the walleye example length range in the tackle notes, and when do largemouth and smallmouth bass typically spawn?",
-      "answer": "- The walleye example slot limit mentioned is **37 – 53 cm** (Zone 27).  \n- Largemouth and smallmouth bass typically spawn in **late spring, roughly May–June**, with the exact timing varying by water temperature.  \n\n*Always double‑check the current catch limits, season dates and any length rules for your zone on quebec.ca or in the OMyFish Regs lookup before keeping any fish.*",
+      "answer": "The walleye note cites an example slot limit of **37 – 53 cm** (Zone 27).  \n\nLargemouth and smallmouth bass typically spawn in **late spring – roughly May to June, depending on water temperature**.  \n\n*Always verify the current limits, seasons and any consumption advisories before you fish.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Largemouth bass (achigan à grande bouche) & smallmouth bass (achigan à petite bouche)",
         "Walleye (doré jaune)",
         "Northern pike (grand brochet)",
@@ -641,17 +668,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Largemouth bass (achigan à grande bouche) & smallmouth bass (achigan à petite bouche)",
-            "score": 0.29
+            "score": 0.2974
           },
           {
             "file": "species_tackle.md",
             "heading": "Walleye (doré jaune)",
-            "score": 0.2145
+            "score": 0.211
           },
           {
             "file": "species_tackle.md",
             "heading": "Northern pike (grand brochet)",
-            "score": 0.1309
+            "score": 0.1308
           }
         ]
       },
@@ -666,12 +693,13 @@
       "category": "exact_term",
       "vocab_gap": false,
       "question": "What length range applies as an example slot limit for doré jaune in Zone 27?",
-      "answer": "In the example given for Zone 27, the walleye (doré jaune) slot limit is **37 cm to 53 cm inclusive**.  \n\n*Be sure to verify the current regulations for your specific zone before you fish, as limits can change.*",
+      "answer": "The example slot limit for doré jaune (walleye) in Zone 27 is **37 cm to 53 cm** inclusive.  \n\n*Remember to verify the current regulations before you fish, as limits can change.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Walleye (doré jaune)",
         "What a \"limit\" usually includes",
         "Fishing zones",
-        "Muskellunge (maskinongé)"
+        "Lake sturgeon (esturgeon jaune)"
       ],
       "error": null,
       "retrieval": {
@@ -681,17 +709,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Walleye (doré jaune)",
-            "score": 0.2598
+            "score": 0.2613
           },
           {
             "file": "regulations_overview.md",
             "heading": "What a \"limit\" usually includes",
-            "score": 0.1697
+            "score": 0.1724
           },
           {
             "file": "regulations_overview.md",
             "heading": "Fishing zones",
-            "score": 0.1515
+            "score": 0.1477
           }
         ]
       },
@@ -706,10 +734,11 @@
       "category": "exact_term",
       "vocab_gap": false,
       "question": "Is northern pike restricted to angling-only gear with a low daily limit, or does that apply to a different toothy predator?",
-      "answer": "The low‑daily‑limit + angling‑only restriction mentioned in the reference applies to **muskellunge (maskinongé)**, not to northern pike. The pike description only covers its behavior and lure tactics; it does not state any special gear or possession limits.\n\n**Reminder:** Always double‑check the latest Quebec regulations (via quebec.ca or the OMyFish app) before you fish, especially for legal limits or gear restrictions.",
+      "answer": "The “angling‑only” gear restriction and low daily limit mentioned in the context apply to **muskellunge (maskinongé)**, not to northern pike. The pike description talks about typical lures and leaders but does not state any angling‑only or low‑limit rule for that species.\n\n*Remember to check the current regulations (e.g., on quebec.ca or in the OMyFish app) before you head out, as limits and gear rules can change.*",
       "sources_returned": [
-        "Northern pike (grand brochet)",
+        "Core rules (pinned)",
         "Muskellunge (maskinongé)",
+        "Northern pike (grand brochet)",
         "What a \"limit\" usually includes",
         "Lake sturgeon (esturgeon jaune)"
       ],
@@ -720,18 +749,18 @@
         "retrieved": [
           {
             "file": "species_tackle.md",
-            "heading": "Northern pike (grand brochet)",
-            "score": 0.2329
+            "heading": "Muskellunge (maskinongé)",
+            "score": 0.2299
           },
           {
             "file": "species_tackle.md",
-            "heading": "Muskellunge (maskinongé)",
-            "score": 0.2219
+            "heading": "Northern pike (grand brochet)",
+            "score": 0.21
           },
           {
             "file": "regulations_overview.md",
             "heading": "What a \"limit\" usually includes",
-            "score": 0.207
+            "score": 0.2006
           }
         ]
       },
@@ -746,8 +775,9 @@
       "category": "out_of_scope",
       "vocab_gap": false,
       "question": "What is the current price of a non-resident annual fishing licence in Quebec?",
-      "answer": "The reference you provided does not include the current price for a non‑resident annual sport‑fishing licence. Please check the official site [quebec.ca](https://www.quebec.ca) or the OMyFish app’s Regs lookup for the up‑to‑date fee.\n\n*Remember to verify current regulations (including licence requirements) before you head out.*",
+      "answer": "The reference material does not include the current price for a non‑resident annual sport‑fishing licence. Please check the official site [quebec.ca](https://www.quebec.ca) or the OMyFish app’s Regs lookup for up‑to‑date pricing.  \n\n*(Always verify the latest licence fees and regulations before heading out.)*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Licensing",
         "This is a plain-language summary to help anglers understand how Quebec fishing",
         "What a \"limit\" usually includes",
@@ -770,12 +800,13 @@
       "category": "out_of_scope",
       "vocab_gap": false,
       "question": "How many sport-fishing licences were sold in Quebec last year?",
-      "answer": "The provided reference does not include data on how many sport‑fishing licences were sold in Quebec last year. For that information, you’ll need to consult official sources such as quebec.ca or the OMyFish app’s statistics/Reg lookup.",
+      "answer": "The provided information does not include the number of sport‑fishing licences sold in Quebec last year. For the most recent statistics, please consult quebec.ca or the OMyFish app’s data resources.",
       "sources_returned": [
+        "Core rules (pinned)",
         "Licensing",
         "This is a plain-language summary to help anglers understand how Quebec fishing",
         "What a \"limit\" usually includes",
-        "Fishing zones"
+        "Bait rules"
       ],
       "error": null,
       "retrieval": {
@@ -794,8 +825,9 @@
       "category": "compound",
       "vocab_gap": true,
       "question": "If I hook a big lake trout in summer, how deep should I be fishing, and can I keep more than one lake sturgeon the same day?",
-      "answer": "- **Lake trout in summer:** They usually hold deep, about **15 – 30 m** down along the thermocline, so aim your jigging or down‑rigger trolling in that depth range.\n\n- **Lake sturgeon keep limit:** Most Quebec zones impose a **very low possession limit—often just one sturgeon per day** (and many anglers release them regardless). So you generally cannot keep more than one the same day.\n\n*Always double‑check the current zone‑specific regulations or the quebec.ca/OMyFish lookup before you fish, especially for legal limits and any consumption advisories.*",
+      "answer": "- **Lake trout in summer:** They usually hold deep, about **15 – 30 m** down along the thermocline. Target them with deep‑jigging gear (heavy spoons, downrigger trolling) at that depth.\n\n- **Lake sturgeon possession limit:** In most Quebec zones the possession limit is **very low, often just one** per day (and angling‑only). So you generally cannot keep more than one sturgeon on the same day; verify the specific zone’s rule.\n\n*Always double‑check the current Quebec regulations (e.g., via quebec.ca or the OMyFish app) before fishing, especially for legal limits and consumption advisories.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Lake trout (touladi) & brook trout (omble de fontaine)",
         "Lake sturgeon (esturgeon jaune)",
         "Consumption advisories are a different question",
@@ -809,17 +841,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Lake trout (touladi) & brook trout (omble de fontaine)",
-            "score": 0.2969
+            "score": 0.2916
           },
           {
             "file": "species_tackle.md",
             "heading": "Lake sturgeon (esturgeon jaune)",
-            "score": 0.2968
+            "score": 0.28
           },
           {
             "file": "regulations_overview.md",
             "heading": "Consumption advisories are a different question",
-            "score": 0.2071
+            "score": 0.21
           }
         ]
       },
@@ -834,8 +866,9 @@
       "category": "compound",
       "vocab_gap": true,
       "question": "Does my 9-year-old need a fishing license, and is there a size range I'd have to release a walleye within?",
-      "answer": "The reference material doesn’t specify whether a 9‑year‑old must have a fishing licence – you’ll need to check the official licence rules on quebec.ca or in the OMyFish app’s licence‑lookup section.\n\nFor walleye, many zones use a length‑based “slot” limit. For example, Zone 27 requires you to release any walleye that measures **37 cm to 53 cm inclusive**. Because the exact slot can vary from zone to zone, you’ll need to look up the specific limit for the zone you’ll be fishing in.\n\n*Always verify the current licence requirements and size limits before you head out, and check any consumption advisories if you plan to eat the fish.*",
+      "answer": "**License:** No. In Quebec a sport‑fishing licence is required only for anglers 12 years old or older, so a 9‑year‑old does not need one.\n\n**Walleye size limit:** Walleye are subject to a length‑based “slot” limit in many zones. For example, Zone 27 uses a 37 cm – 53 cm slot, meaning fish that fall inside that range must be released. The exact slot varies by zone, so you’ll need to check the regulation for the specific zone you’ll be fishing in.\n\n*Always verify the current licence requirement, zone‑specific slot limits, and any other rules before you head out.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "What a \"limit\" usually includes",
         "Walleye (doré jaune)",
         "Fishing zones",
@@ -849,25 +882,23 @@
           {
             "file": "regulations_overview.md",
             "heading": "What a \"limit\" usually includes",
-            "score": 0.2879
+            "score": 0.2891
           },
           {
             "file": "species_tackle.md",
             "heading": "Walleye (doré jaune)",
-            "score": 0.2281
+            "score": 0.221
           },
           {
             "file": "regulations_overview.md",
             "heading": "Fishing zones",
-            "score": 0.2105
+            "score": 0.2094
           }
         ]
       },
       "correctness": {
-        "passed": false,
-        "missing_facts": [
-          "12"
-        ]
+        "passed": true,
+        "missing_facts": []
       }
     },
     {
@@ -876,8 +907,9 @@
       "category": "compound",
       "vocab_gap": true,
       "question": "What lures should I throw for muskie, and are rainbow trout easier to catch right when the ice goes out?",
-      "answer": "**Muskellunge (muskie)**  \n- Use large bucktails, glide‑baits, or jerkbaits.  \n- Retrieve them with an erratic, “figure‑eight” motion at the boat’s side on every retrieve – this provokes strikes from the low‑density, high‑effort target.\n\n**Rainbow trout (truite arc‑en‑ciel)**  \n- Right after ice‑out they are shallow and aggressive, making them easier to catch.  \n- Effective lures at that time are small spoons, small spinners, and trolled flies.\n\n*Reminder: always double‑check the current Quebec regulations (daily limits, possession rules, and any consumption advisories) before you keep or consume any fish.*",
+      "answer": "**Muskie lures**  \n- Large bucktails  \n- Glide baits  \n- Jerkbaits (retrieved erratically; a figure‑eight motion at the boat’s side works well)\n\n**Rainbow trout right after ice‑out**  \nYes. In stocked lakes they are shallow and aggressive just after the ice melts, and they bite readily on small spoons, spinners and trolled flies.\n\n*Reminder: always double‑check the current regulations (e.g., licence requirements, daily limits, and any species‑specific rules) on quebec.ca or in the OMyFish app before you head out.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Rainbow trout (truite arc-en-ciel)",
         "Lake trout (touladi) & brook trout (omble de fontaine)",
         "Muskellunge (maskinongé)",
@@ -891,17 +923,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Rainbow trout (truite arc-en-ciel)",
-            "score": 0.3025
+            "score": 0.2973
           },
           {
             "file": "species_tackle.md",
             "heading": "Lake trout (touladi) & brook trout (omble de fontaine)",
-            "score": 0.1844
+            "score": 0.1719
           },
           {
             "file": "species_tackle.md",
             "heading": "Muskellunge (maskinongé)",
-            "score": 0.1269
+            "score": 0.1283
           }
         ]
       },
@@ -916,8 +948,9 @@
       "category": "compound",
       "vocab_gap": false,
       "question": "Is sturgeon fishing just worms on the bottom, and do largemouth bass spawn around the same time as smallmouth?",
-      "answer": "Yes. Lake sturgeon are bottom‑feeders, and anglers usually fish them on the bottom with heavy tackle using bait such as worms (along with leeches or cut bait).\n\nBoth largemouth and smallmouth bass spawn in shallow water in late spring—roughly May to June, depending on water temperature—so their spawning periods overlap.\n\n*Remember to verify the current limits, seasons and any consumption advisories before you head out.*",
+      "answer": "- **Sturgeon:** Yes. In Quebec, lake sturgeon are commonly fished on the bottom using bait such as worms, leeches, or cut bait.  \n- **Bass spawning:** Yes. Both largemouth bass and smallmouth bass spawn in shallow water in late spring (roughly May–June, depending on water temperature), so their spawning periods overlap.\n\n*Always verify current regulations (e.g., licence requirements, catch limits, seasonal rules) on quebec.ca or in the app’s Regs lookup before you go fishing.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Largemouth bass (achigan à grande bouche) & smallmouth bass (achigan à petite bouche)",
         "Lake sturgeon (esturgeon jaune)",
         "This is a plain-language summary to help anglers understand how Quebec fishing",
@@ -931,17 +964,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Largemouth bass (achigan à grande bouche) & smallmouth bass (achigan à petite bouche)",
-            "score": 0.3228
+            "score": 0.3289
           },
           {
             "file": "species_tackle.md",
             "heading": "Lake sturgeon (esturgeon jaune)",
-            "score": 0.2883
+            "score": 0.268
           },
           {
             "file": "regulations_overview.md",
             "heading": "This is a plain-language summary to help anglers understand how Quebec fishing",
-            "score": 0.1244
+            "score": 0.1255
           }
         ]
       },
@@ -956,12 +989,13 @@
       "category": "compound",
       "vocab_gap": false,
       "question": "Do I need to worry about handling lake trout gently in hot weather, and can perch be caught through the ice?",
-      "answer": "Yes. Lake trout are cold‑water specialists and can suffer heat stress if they’re played or handled too long in warm conditions, so handle them gently when the weather is hot. And yes—yellow perch are commonly taken through the ice; ice fishing for perch is popular in Quebec because they stay active and feeding under the ice.\n\n*Always double‑check the current regulations (catch limits, seasons, gear rules, and any consumption advisories) before you head out.*",
+      "answer": "Yes – lake trout are cold‑water specialists and are **sensitive to summer heat stress if played too long before release**, so handling them gently in hot weather is important.  \n\nYes – **perch are commonly caught through the ice**; ice fishing for perch (and crappie) is popular and productive in Quebec.  \n\n*Remember to verify current regulations (e.g., licence requirements, any seasonal restrictions) before you head out.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Lake trout (touladi) & brook trout (omble de fontaine)",
         "Yellow perch (perchaude) & black crappie (marigane noire)",
-        "Rainbow trout (truite arc-en-ciel)",
-        "Fishing zones"
+        "Fishing zones",
+        "Rainbow trout (truite arc-en-ciel)"
       ],
       "error": null,
       "retrieval": {
@@ -971,17 +1005,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Lake trout (touladi) & brook trout (omble de fontaine)",
-            "score": 0.2917
+            "score": 0.2839
           },
           {
             "file": "species_tackle.md",
             "heading": "Yellow perch (perchaude) & black crappie (marigane noire)",
-            "score": 0.1963
+            "score": 0.1802
           },
           {
-            "file": "species_tackle.md",
-            "heading": "Rainbow trout (truite arc-en-ciel)",
-            "score": 0.1408
+            "file": "regulations_overview.md",
+            "heading": "Fishing zones",
+            "score": 0.1424
           }
         ]
       },
@@ -996,8 +1030,9 @@
       "category": "compare",
       "vocab_gap": false,
       "question": "Do largemouth and smallmouth bass like the same kind of cover and water, or are they pretty different?",
-      "answer": "Largemouth bass and smallmouth bass prefer quite different habitats.  \n- **Largemouth** like heavy cover such as weed beds, docks and fallen timber.  \n- **Smallmouth** favor rockier, clearer water with current and tend to stay near rocky points and drop‑offs.  \n\nSo their preferred cover and water types are not the same.  \n\n*(Always verify the current fishing regulations before you head out, even for species‑specific tips.)*",
+      "answer": "Largemouth bass prefer heavy cover such as weed beds, docks and fallen timber, while smallmouth bass favor rockier, clearer water with current. So their preferred cover and water types are fairly different.  \n\n*Reminder: always verify current regulations and any local restrictions before you head out.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Largemouth bass (achigan à grande bouche) & smallmouth bass (achigan à petite bouche)",
         "Consumption advisories are a different question",
         "Rainbow trout (truite arc-en-ciel)",
@@ -1011,17 +1046,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Largemouth bass (achigan à grande bouche) & smallmouth bass (achigan à petite bouche)",
-            "score": 0.3905
+            "score": 0.3936
           },
           {
             "file": "regulations_overview.md",
             "heading": "Consumption advisories are a different question",
-            "score": 0.1701
+            "score": 0.172
           },
           {
             "file": "species_tackle.md",
             "heading": "Rainbow trout (truite arc-en-ciel)",
-            "score": 0.1431
+            "score": 0.1333
           }
         ]
       },
@@ -1036,32 +1071,33 @@
       "category": "compare",
       "vocab_gap": true,
       "question": "Are walleye and northern pike active at the same times of day, or does one bite better at night?",
-      "answer": "Northern pike tend to be most aggressive **during the heat of the day**, while walleye feed **most actively at dawn, dusk and after dark** (they often stay deeper during bright midday). So their peak bite times differ—pike bite better in daylight, walleye bite better at low‑light or night.\n\n*Always verify the current regulations and any consumption advisories before you head out.*",
+      "answer": "Northern pike tend to bite most actively **during the heat of the day**, while walleye are strongest **at dawn, dusk, and after dark**. So their peak activity periods differ, with walleye generally providing better night‑time action.  \n\n*Remember to verify current regulations (licensing, slot limits, bait rules, etc.) before you head out.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Northern pike (grand brochet)",
         "Consumption advisories are a different question",
-        "Walleye (doré jaune)",
-        "Yellow perch (perchaude) & black crappie (marigane noire)"
+        "Yellow perch (perchaude) & black crappie (marigane noire)",
+        "Walleye (doré jaune)"
       ],
       "error": null,
       "retrieval": {
         "applicable": true,
-        "passed": true,
+        "passed": false,
         "retrieved": [
           {
             "file": "species_tackle.md",
             "heading": "Northern pike (grand brochet)",
-            "score": 0.3566
+            "score": 0.3317
           },
           {
             "file": "regulations_overview.md",
             "heading": "Consumption advisories are a different question",
-            "score": 0.1781
+            "score": 0.1741
           },
           {
             "file": "species_tackle.md",
-            "heading": "Walleye (doré jaune)",
-            "score": 0.1449
+            "heading": "Yellow perch (perchaude) & black crappie (marigane noire)",
+            "score": 0.1469
           }
         ]
       },
@@ -1076,12 +1112,13 @@
       "category": "compare",
       "vocab_gap": true,
       "question": "Are lake trout and brook trout both the kind of fish that get stressed out if you fight them too long on a hot day?",
-      "answer": "Yes. Both lake trout (touladi) and brook trout (omble de fontaine) are cold‑water specialists, and the reference notes they are “sensitive to summer heat stress if played too long before release.”  \n\n*Reminder: always verify current regulations and any handling guidelines before you fish.*",
+      "answer": "Yes. Both lake trout and brook trout are cold‑water specialists and can become stressed by summer heat if they are fought too long before being released.  \n\n*Always verify the latest regulations and advisories before fishing.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Lake trout (touladi) & brook trout (omble de fontaine)",
         "What a \"limit\" usually includes",
         "Rainbow trout (truite arc-en-ciel)",
-        "Consumption advisories are a different question"
+        "Waterbody-specific exceptions"
       ],
       "error": null,
       "retrieval": {
@@ -1091,17 +1128,17 @@
           {
             "file": "species_tackle.md",
             "heading": "Lake trout (touladi) & brook trout (omble de fontaine)",
-            "score": 0.3909
+            "score": 0.3821
           },
           {
             "file": "regulations_overview.md",
             "heading": "What a \"limit\" usually includes",
-            "score": 0.1838
+            "score": 0.1796
           },
           {
             "file": "species_tackle.md",
             "heading": "Rainbow trout (truite arc-en-ciel)",
-            "score": 0.1471
+            "score": 0.1351
           }
         ]
       },
@@ -1116,38 +1153,50 @@
       "category": "premise_check",
       "vocab_gap": false,
       "question": "Since walleye and pike are basically the same fish, is the slot limit example the same for both?",
-      "answer": "No. The slot‑limit example (e.g., a 37–53 cm “slot” in Zone 27) is mentioned only for walleye. The summary for northern pike does not include any slot‑limit information, so the same length‑based rule does not automatically apply to pike.\n\n**Reminder:** Always verify the current catch limits, seasons and any length or slot rules for the species and zone you’re fishing in—check quebec.ca or the OMyFish app’s Regs lookup before keeping a fish.",
+      "answer": "The context only mentions a length‑based “slot” limit for walleye (e.g., Zone 27’s 37–53 cm range). It does not provide any slot‑limit information for northern pike, so we can’t confirm that the same example applies to pike.\n\nPlease check the current regulations for pike on quebec.ca or in the app’s Regs lookup to be sure. Remember to verify the latest limits and any consumption advisories before you fish.",
       "sources_returned": [
+        "Core rules (pinned)",
         "Northern pike (grand brochet)",
         "Consumption advisories are a different question",
-        "Walleye (doré jaune)",
-        "This is a plain-language summary to help anglers understand how Quebec fishing"
+        "This is a plain-language summary to help anglers understand how Quebec fishing",
+        "Walleye (doré jaune)"
       ],
       "error": null,
       "retrieval": {
         "applicable": true,
-        "passed": true,
+        "passed": false,
         "retrieved": [
           {
             "file": "species_tackle.md",
             "heading": "Northern pike (grand brochet)",
-            "score": 0.3053
+            "score": 0.2757
           },
           {
             "file": "regulations_overview.md",
             "heading": "Consumption advisories are a different question",
-            "score": 0.2669
+            "score": 0.2744
           },
           {
-            "file": "species_tackle.md",
-            "heading": "Walleye (doré jaune)",
-            "score": 0.2194
+            "file": "regulations_overview.md",
+            "heading": "This is a plain-language summary to help anglers understand how Quebec fishing",
+            "score": 0.2202
           }
         ]
       },
       "correctness": {
-        "passed": true,
-        "missing_facts": []
+        "passed": false,
+        "missing_facts": [
+          "different species",
+          "different fish",
+          "not the same species",
+          "two different",
+          "walleye only",
+          "only walleye",
+          "specific to walleye",
+          "mention a slot limit",
+          "mention any slot limit",
+          "only for walleye"
+        ]
       }
     },
     {
@@ -1156,32 +1205,33 @@
       "category": "premise_check",
       "vocab_gap": true,
       "question": "Quebec regulations say I can only fish with artificial lures, right? No live bait allowed anywhere?",
-      "answer": "The reference material doesn’t say that Quebec has a blanket rule requiring only artificial lures. In fact, it notes that lake‑sturgeon anglers often use **live bait** such as worms, leeches, or cut bait, while other species (like lake‑trout or brook‑trout) are commonly fished with lures.  \n\nBecause catch limits, seasons, permitted gear – including whether live bait is allowed – are set **per zone and per species**, you need to consult the specific regulations for the zone you’ll be fishing in.\n\n**Tip:** Check the zone‑specific Regs lookup in the app or visit quebec.ca to confirm the current rules for your target species and area. Always verify the latest regulations before you head out.",
+      "answer": "No. Quebec bans **live bait fish** (any live fish, mollusc, crustacean or marine animal used as bait, including minnows and shiners) throughout the province. However, the rule does **not** forbid all live bait – earthworms, leeches, insects and frogs are explicitly excluded from the “bait‑fish” definition and may be used unless a specific regulation says otherwise.  \n\nDead bait fish are also allowed in some waters (and for some species) during winter, while many species (trout, walleye, pike, muskellunge, perch, sturgeon, salmon, char, etc.) may never be used as dead bait. Always check the zone‑specific regulations for any additional restrictions.\n\n**Reminder:** Verify the current regulations on quebec.ca or in the OMyFish app before you head out, as rules can change.",
       "sources_returned": [
+        "Core rules (pinned)",
+        "Bait rules",
         "Fishing zones",
         "Lake sturgeon (esturgeon jaune)",
-        "Editorial notes on how anglers commonly target these species in Quebec. This",
-        "Lake trout (touladi) & brook trout (omble de fontaine)"
+        "Editorial notes on how anglers commonly target these species in Quebec. This"
       ],
       "error": null,
       "retrieval": {
         "applicable": true,
-        "passed": false,
+        "passed": true,
         "retrieved": [
           {
             "file": "regulations_overview.md",
+            "heading": "Bait rules",
+            "score": 0.2738
+          },
+          {
+            "file": "regulations_overview.md",
             "heading": "Fishing zones",
-            "score": 0.1464
+            "score": 0.1314
           },
           {
             "file": "species_tackle.md",
             "heading": "Lake sturgeon (esturgeon jaune)",
-            "score": 0.1457
-          },
-          {
-            "file": "species_tackle.md",
-            "heading": "Editorial notes on how anglers commonly target these species in Quebec. This",
-            "score": 0.1259
+            "score": 0.1309
           }
         ]
       },
@@ -1196,8 +1246,9 @@
       "category": "vague",
       "vocab_gap": false,
       "question": "What's the catch limit for my favorite fish?",
-      "answer": "I’m sorry—I don’t have the specific catch limit for the fish you’re thinking of. The reference only notes that muskellunge “often carry a low daily limit,” but it doesn’t give an exact number, and no other species are detailed.\n\nPlease check the official [quebec.ca](https://www.quebec.ca/en/tourism-and-recreation/sporting-and-outdoor-activities/sport-fishing) site or use the OMyFish app’s Regs lookup for the current catch/possession limit for your favorite species.  \n\n**Reminder:** Always verify the latest regulations (limits, seasons, size rules, and any consumption advisories) before you go fishing.",
+      "answer": "I’m sorry—I don’t have a specific catch limit for the fish you’re thinking of in the provided information. Please check the detailed zone‑specific regulations on [quebec.ca](https://www.quebec.ca/en/tourism-and-recreation/sporting-and-outdoor-activities/sport-fishing) or use the app’s Regs lookup to get the exact limit for that species.  \n\n*Always verify the current regulations before you fish.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Consumption advisories are a different question",
         "This is a plain-language summary to help anglers understand how Quebec fishing",
         "What a \"limit\" usually includes",
@@ -1211,17 +1262,17 @@
           {
             "file": "regulations_overview.md",
             "heading": "Consumption advisories are a different question",
-            "score": 0.2457
+            "score": 0.2387
           },
           {
             "file": "regulations_overview.md",
             "heading": "This is a plain-language summary to help anglers understand how Quebec fishing",
-            "score": 0.1858
+            "score": 0.1869
           },
           {
             "file": "regulations_overview.md",
             "heading": "What a \"limit\" usually includes",
-            "score": 0.166
+            "score": 0.1703
           }
         ]
       },
@@ -1236,8 +1287,9 @@
       "category": "vague",
       "vocab_gap": true,
       "question": "Can I keep a legal walleye around here?",
-      "answer": "Walleye in Quebec are often subject to a length‑based “slot” limit. In many zones (for example, Zone 27 the protected slot is 37 – 53 cm), you may only keep a walleye that is **outside** that size range and that you do not exceed the daily possession limit or any seasonal restriction.\n\nSo, before you decide to keep a walleye you’ve caught, verify:\n\n* the exact slot dimensions for the zone you’re fishing in,  \n* the daily catch/possession limit for walleye (or walleye + sauger combined), and  \n* that you are within the open season for the species.\n\nIf the fish’s length falls outside the protected slot and you are within those other limits, it can be kept legally.  \n\n**Reminder:** Always double‑check the current regulations (quebec.ca or the OMyFish app’s Regs lookup) before you keep or release a fish, and remember that consumption advisories are a separate health guideline.",
+      "answer": "The answer depends on the specific zone you’re fishing in. In many Quebec zones walleye are subject to a length‑based “slot” limit (for example, Zone 27 protects fish 37 cm – 53 cm). You may keep a walleye only if it falls **outside** that protected size range and you stay within any daily catch/possession limits that apply to your zone, and you have a valid sport‑fishing licence (required for anyone 12 years or older).\n\nBecause the exact slot limits and daily limits vary by zone, the answer can’t be confirmed without knowing your location. Check the zone‑specific regulation sheet (or the app’s Regs lookup) for the precise limits before keeping the fish.  \n\n*Always verify the current regulations and any consumption advisories before you fish.*",
       "sources_returned": [
+        "Core rules (pinned)",
         "Walleye (doré jaune)",
         "Lake sturgeon (esturgeon jaune)",
         "Consumption advisories are a different question",
@@ -1251,17 +1303,386 @@
           {
             "file": "species_tackle.md",
             "heading": "Walleye (doré jaune)",
-            "score": 0.1686
+            "score": 0.156
           },
           {
             "file": "species_tackle.md",
             "heading": "Lake sturgeon (esturgeon jaune)",
-            "score": 0.1284
+            "score": 0.1344
           },
           {
             "file": "regulations_overview.md",
             "heading": "Consumption advisories are a different question",
-            "score": 0.1164
+            "score": 0.1186
+          }
+        ]
+      },
+      "correctness": {
+        "passed": true,
+        "missing_facts": []
+      }
+    },
+    {
+      "id": "RB1",
+      "tier": "regression",
+      "category": "legality",
+      "vocab_gap": false,
+      "question": "live bait allowed in quebec?",
+      "answer": "No. Since April 1 2017, the use and possession of **live bait fish** (any fish, mollusc, crustacean or marine animal used as bait—including minnows and shiners) is prohibited throughout Quebec, even during winter fishing periods. Only non‑fish baits such as earthworms, leeches, insects or frogs are permitted unless a specific rule says otherwise.\n\n*Always verify that you have the latest regulations before heading out.*",
+      "sources_returned": [
+        "Core rules (pinned)",
+        "Bait rules",
+        "Lake sturgeon (esturgeon jaune)",
+        "Fishing zones",
+        "Walleye (doré jaune)"
+      ],
+      "error": null,
+      "retrieval": {
+        "applicable": true,
+        "passed": true,
+        "retrieved": [
+          {
+            "file": "regulations_overview.md",
+            "heading": "Bait rules",
+            "score": 0.3703
+          },
+          {
+            "file": "species_tackle.md",
+            "heading": "Lake sturgeon (esturgeon jaune)",
+            "score": 0.1418
+          },
+          {
+            "file": "regulations_overview.md",
+            "heading": "Fishing zones",
+            "score": 0.1219
+          }
+        ]
+      },
+      "correctness": {
+        "passed": true,
+        "missing_facts": []
+      }
+    },
+    {
+      "id": "RB2",
+      "tier": "regression",
+      "category": "legality",
+      "vocab_gap": true,
+      "question": "can I use minnows as bait?",
+      "answer": "No. Since April 1 2017 the use and possession of live bait fish—including minnows and shiners—is prohibited throughout Québec.  \n\n*(Always verify that you are following the most current regulations before you head out.)*",
+      "sources_returned": [
+        "Core rules (pinned)",
+        "Bait rules",
+        "Lake sturgeon (esturgeon jaune)",
+        "Lake trout (touladi) & brook trout (omble de fontaine)",
+        "Rainbow trout (truite arc-en-ciel)"
+      ],
+      "error": null,
+      "retrieval": {
+        "applicable": true,
+        "passed": true,
+        "retrieved": [
+          {
+            "file": "regulations_overview.md",
+            "heading": "Bait rules",
+            "score": 0.4078
+          },
+          {
+            "file": "species_tackle.md",
+            "heading": "Lake sturgeon (esturgeon jaune)",
+            "score": 0.0935
+          },
+          {
+            "file": "species_tackle.md",
+            "heading": "Lake trout (touladi) & brook trout (omble de fontaine)",
+            "score": 0.0807
+          }
+        ]
+      },
+      "correctness": {
+        "passed": true,
+        "missing_facts": []
+      }
+    },
+    {
+      "id": "RB3",
+      "tier": "regression",
+      "category": "legality",
+      "vocab_gap": true,
+      "question": "are shiners allowed as bait in Quebec?",
+      "answer": "No. Since April 1 2017, live bait fish—including shiners—are prohibited for use or possession anywhere in Québec. Be sure to verify the latest regulations before fishing.",
+      "sources_returned": [
+        "Core rules (pinned)",
+        "Bait rules",
+        "Rainbow trout (truite arc-en-ciel)",
+        "Fishing zones",
+        "Walleye (doré jaune)"
+      ],
+      "error": null,
+      "retrieval": {
+        "applicable": true,
+        "passed": true,
+        "retrieved": [
+          {
+            "file": "regulations_overview.md",
+            "heading": "Bait rules",
+            "score": 0.329
+          },
+          {
+            "file": "species_tackle.md",
+            "heading": "Rainbow trout (truite arc-en-ciel)",
+            "score": 0.1106
+          },
+          {
+            "file": "regulations_overview.md",
+            "heading": "Fishing zones",
+            "score": 0.1057
+          }
+        ]
+      },
+      "correctness": {
+        "passed": true,
+        "missing_facts": []
+      }
+    },
+    {
+      "id": "RB4",
+      "tier": "regression",
+      "category": "legality",
+      "vocab_gap": true,
+      "question": "is bait fish legal?",
+      "answer": "No. Since April 1 2017 Quebec prohibits the **use and possession of live bait fish** (any fish, mollusc, crustacean or marine animal used as bait, including minnows and shiners) throughout the province, even during winter fishing periods. Importing live or dead bait fish is also prohibited.  \n\nDead bait fish are only allowed for certain freshwater species in specific waters and seasons, and some species (e.g., trout, walleye, pike, muskellunge, perch, sturgeon, salmon, char) may never be used as dead bait.  \n\n**Reminder:** always verify the current bait‑use rules for your waterbody on quebec.ca or in the app’s Regs lookup before fishing.",
+      "sources_returned": [
+        "Core rules (pinned)",
+        "Bait rules",
+        "Consumption advisories are a different question",
+        "Lake sturgeon (esturgeon jaune)",
+        "This is a plain-language summary to help anglers understand how Quebec fishing"
+      ],
+      "error": null,
+      "retrieval": {
+        "applicable": true,
+        "passed": true,
+        "retrieved": [
+          {
+            "file": "regulations_overview.md",
+            "heading": "Bait rules",
+            "score": 0.4188
+          },
+          {
+            "file": "regulations_overview.md",
+            "heading": "Consumption advisories are a different question",
+            "score": 0.2031
+          },
+          {
+            "file": "species_tackle.md",
+            "heading": "Lake sturgeon (esturgeon jaune)",
+            "score": 0.1398
+          }
+        ]
+      },
+      "correctness": {
+        "passed": true,
+        "missing_facts": []
+      }
+    },
+    {
+      "id": "RB5",
+      "tier": "regression",
+      "category": "legality",
+      "vocab_gap": true,
+      "question": "my buddy wants to bring a bucket of live minnows for walleye, is that ok?",
+      "answer": "No. Since April 1 2017, the use and possession of live bait fish—including minnows—has been prohibited throughout Quebec, regardless of species or the target fish. \n\n*Reminder: always verify the most current regulations before you fish.*",
+      "sources_returned": [
+        "Core rules (pinned)",
+        "What a \"limit\" usually includes",
+        "Walleye (doré jaune)",
+        "Bait rules",
+        "Northern pike (grand brochet)"
+      ],
+      "error": null,
+      "retrieval": {
+        "applicable": true,
+        "passed": true,
+        "retrieved": [
+          {
+            "file": "regulations_overview.md",
+            "heading": "What a \"limit\" usually includes",
+            "score": 0.1932
+          },
+          {
+            "file": "species_tackle.md",
+            "heading": "Walleye (doré jaune)",
+            "score": 0.1733
+          },
+          {
+            "file": "regulations_overview.md",
+            "heading": "Bait rules",
+            "score": 0.168
+          }
+        ]
+      },
+      "correctness": {
+        "passed": true,
+        "missing_facts": []
+      }
+    },
+    {
+      "id": "RB6",
+      "tier": "regression",
+      "category": "legality",
+      "vocab_gap": true,
+      "question": "can I fish with live shiners in a Quebec lake?",
+      "answer": "No. Live shiners are classified as “live bait fish,” and since April 1 2017 the use and possession of any live bait fish—including minnows and shiners—is prohibited throughout Quebec.  \n\n*Always double‑check the latest regulations on quebec.ca or in the OMyFish app before heading out.*",
+      "sources_returned": [
+        "Core rules (pinned)",
+        "Bait rules",
+        "Lake sturgeon (esturgeon jaune)",
+        "Lake trout (touladi) & brook trout (omble de fontaine)",
+        "Licensing"
+      ],
+      "error": null,
+      "retrieval": {
+        "applicable": true,
+        "passed": true,
+        "retrieved": [
+          {
+            "file": "regulations_overview.md",
+            "heading": "Bait rules",
+            "score": 0.188
+          },
+          {
+            "file": "species_tackle.md",
+            "heading": "Lake sturgeon (esturgeon jaune)",
+            "score": 0.178
+          },
+          {
+            "file": "species_tackle.md",
+            "heading": "Lake trout (touladi) & brook trout (omble de fontaine)",
+            "score": 0.1558
+          }
+        ]
+      },
+      "correctness": {
+        "passed": true,
+        "missing_facts": []
+      }
+    },
+    {
+      "id": "RB7",
+      "tier": "regression",
+      "category": "premise_check",
+      "vocab_gap": true,
+      "question": "I heard you can't use real minnows anymore, is that true?",
+      "answer": "Yes. Since April 1 2017 the use and possession of live bait fish—including minnows and shiners—has been prohibited throughout Québec (including during winter fishing periods). Only non‑fish baits such as earthworms, leeches, insects or frogs are permitted unless another rule says otherwise.  \n\n*Always verify that you’re following the most current regulations before you head out.*",
+      "sources_returned": [
+        "Core rules (pinned)",
+        "Bait rules",
+        "What a \"limit\" usually includes",
+        "Fishing zones",
+        "Lake sturgeon (esturgeon jaune)"
+      ],
+      "error": null,
+      "retrieval": {
+        "applicable": true,
+        "passed": true,
+        "retrieved": [
+          {
+            "file": "regulations_overview.md",
+            "heading": "Bait rules",
+            "score": 0.1897
+          },
+          {
+            "file": "regulations_overview.md",
+            "heading": "What a \"limit\" usually includes",
+            "score": 0.148
+          },
+          {
+            "file": "regulations_overview.md",
+            "heading": "Fishing zones",
+            "score": 0.1291
+          }
+        ]
+      },
+      "correctness": {
+        "passed": true,
+        "missing_facts": []
+      }
+    },
+    {
+      "id": "RB8",
+      "tier": "regression",
+      "category": "single_fact",
+      "vocab_gap": false,
+      "question": "do you need a permit to fish in Quebec?",
+      "answer": "Yes. A valid Quebec sport‑fishing licence (permit) is required for anyone 12 years old or older to fish in Quebec, except on the few designated free‑fishing days.  \n\n*Always verify the current regulations on quebec.ca or in the app before you head out.*",
+      "sources_returned": [
+        "Core rules (pinned)",
+        "Fishing zones",
+        "Licensing",
+        "What a \"limit\" usually includes",
+        "Consumption advisories are a different question"
+      ],
+      "error": null,
+      "retrieval": {
+        "applicable": true,
+        "passed": true,
+        "retrieved": [
+          {
+            "file": "regulations_overview.md",
+            "heading": "Fishing zones",
+            "score": 0.2297
+          },
+          {
+            "file": "regulations_overview.md",
+            "heading": "Licensing",
+            "score": 0.228
+          },
+          {
+            "file": "regulations_overview.md",
+            "heading": "What a \"limit\" usually includes",
+            "score": 0.2004
+          }
+        ]
+      },
+      "correctness": {
+        "passed": true,
+        "missing_facts": []
+      }
+    },
+    {
+      "id": "RB9",
+      "tier": "regression",
+      "category": "single_fact",
+      "vocab_gap": false,
+      "question": "is there a kids exemption for the Quebec fishing license?",
+      "answer": "Yes. According to the core rules, a valid Quebec sport‑fishing licence is required only for anglers **12 years old or older**; children younger than 12 can fish without a licence (aside from any special free‑fishing days that may be designated).\n\n*Remember to verify the current regulations before you head out, as rules can change.*",
+      "sources_returned": [
+        "Core rules (pinned)",
+        "Licensing",
+        "Fishing zones",
+        "This is a plain-language summary to help anglers understand how Quebec fishing",
+        "What a \"limit\" usually includes"
+      ],
+      "error": null,
+      "retrieval": {
+        "applicable": true,
+        "passed": true,
+        "retrieved": [
+          {
+            "file": "regulations_overview.md",
+            "heading": "Licensing",
+            "score": 0.2808
+          },
+          {
+            "file": "regulations_overview.md",
+            "heading": "Fishing zones",
+            "score": 0.2603
+          },
+          {
+            "file": "regulations_overview.md",
+            "heading": "This is a plain-language summary to help anglers understand how Quebec fishing",
+            "score": 0.2596
           }
         ]
       },
